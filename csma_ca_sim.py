@@ -4,7 +4,23 @@ import argparse
 import heapq
 import math
 import random
-from dataclasses import dataclass
+from dataclasses import dataclass as _dataclass
+
+# dataclass 'slots' parameter was added in Python 3.10. Provide a thin
+# compatibility wrapper so the same source works on 3.8/3.9 (CI) and newer
+# interpreters (local dev). If 'slots' is not supported, drop it.
+_DATACLASS_SUPPORTS_SLOTS = True
+try:
+    # try constructing a dataclass with slots to detect support
+    _dataclass(slots=True)(type("_X", (), {}))
+except TypeError:
+    _DATACLASS_SUPPORTS_SLOTS = False
+
+
+def dataclass_compat(**kwargs):
+    if not _DATACLASS_SUPPORTS_SLOTS and "slots" in kwargs:
+        kwargs = {k: v for k, v in kwargs.items() if k != "slots"}
+    return _dataclass(**kwargs)
 from pathlib import Path
 from statistics import mean
 from xml.sax.saxutils import escape
@@ -25,7 +41,7 @@ def next_slot_boundary(time_value: float, slot_time: float) -> float:
     return max(0.0, slot_index * slot_time)
 
 
-@dataclass(slots=True)
+@dataclass_compat(slots=True)
 class SimulationConfig:
     # Configuration globale de la simulation.
     # Contient les paramètres MAC et physiques utilisés par le simulateur.
@@ -46,7 +62,7 @@ class SimulationConfig:
     cts_duration: float = 200e-6
 
 
-@dataclass(slots=True)
+@dataclass_compat(slots=True)
 class PacketState:
     # État d'un paquet en attente dans une station.
     # `arrival_time` : instant de génération du paquet.
@@ -55,7 +71,7 @@ class PacketState:
     attempts: int = 0
 
 
-@dataclass(slots=True)
+@dataclass_compat(slots=True)
 class StationState:
     # État MAC d'une station.
     # `packet` : paquet en cours (une seule file supportée par simplification)
@@ -71,7 +87,7 @@ class StationState:
     nav_until: float = 0.0
 
 
-@dataclass(slots=True)
+@dataclass_compat(slots=True)
 class SimulationResult:
     # Résultats agrégés de la simulation (pour affichage / sauvegarde)
     throughput_packets_per_s: float
@@ -85,7 +101,7 @@ class SimulationResult:
     collided_packets: int
 
 
-@dataclass(slots=True)
+@dataclass_compat(slots=True)
 class ExperimentPoint:
     # Structure simple pour stocker un point d'une série (ex: N stations -> métriques)
     x_value: int
