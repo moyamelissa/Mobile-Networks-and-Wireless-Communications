@@ -1,0 +1,129 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="1160" viewBox="0 0 980 1160">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f8fafc"/>
+      <stop offset="100%" stop-color="#eef2ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="100%" height="100%" fill="url(#bg)"/>
+  <text x="490.0" y="40" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#111827">CSMA/CA: impact of Wmin</text>
+  <text x="490.0" y="64" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#475569">Wmin</text>
+  <rect x="50" y="80" width="880" height="270" rx="18" fill="#fbfbfd" stroke="#d9dce3"/>
+<text x="68" y="106" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#1f2937">Throughput</text>
+<text x="68" y="130" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#4b5563">Bits/s</text>
+<line x1="140" y1="302" x2="895" y2="302" stroke="#334155" stroke-width="1.2"/>
+<line x1="140" y1="115" x2="140" y2="302" stroke="#334155" stroke-width="1.2"/>
+<line x1="135" y1="302.0" x2="140" y2="302.0" stroke="#334155" stroke-width="1"/>
+<text x="130" y="306.0" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">1855048.80</text>
+<line x1="135" y1="255.2500000000013" x2="140" y2="255.2500000000013" stroke="#334155" stroke-width="1"/>
+<text x="130" y="259.2500000000013" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">1859294.40</text>
+<line x1="135" y1="208.5" x2="140" y2="208.5" stroke="#334155" stroke-width="1"/>
+<text x="130" y="212.5" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">1863540.00</text>
+<line x1="135" y1="161.74999999999872" x2="140" y2="161.74999999999872" stroke="#334155" stroke-width="1"/>
+<text x="130" y="165.74999999999872" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">1867785.60</text>
+<line x1="135" y1="115.0" x2="140" y2="115.0" stroke="#334155" stroke-width="1"/>
+<text x="130" y="119.0" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">1872031.20</text>
+<line x1="140.0" y1="302" x2="140.0" y2="307" stroke="#334155" stroke-width="1"/>
+<text x="140.0" y="322" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">15</text>
+<line x1="265.8333333333333" y1="302" x2="265.8333333333333" y2="307" stroke="#334155" stroke-width="1"/>
+<text x="265.8333333333333" y="322" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">23</text>
+<line x1="391.66666666666663" y1="302" x2="391.66666666666663" y2="307" stroke="#334155" stroke-width="1"/>
+<text x="391.66666666666663" y="322" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">31</text>
+<line x1="517.5" y1="302" x2="517.5" y2="307" stroke="#334155" stroke-width="1"/>
+<text x="517.5" y="322" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">39</text>
+<line x1="643.3333333333333" y1="302" x2="643.3333333333333" y2="307" stroke="#334155" stroke-width="1"/>
+<text x="643.3333333333333" y="322" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">47</text>
+<line x1="769.1666666666666" y1="302" x2="769.1666666666666" y2="307" stroke="#334155" stroke-width="1"/>
+<text x="769.1666666666666" y="322" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">55</text>
+<line x1="895.0" y1="302" x2="895.0" y2="307" stroke="#334155" stroke-width="1"/>
+<text x="895.0" y="322" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">63</text>
+<polyline fill="none" stroke="#dc2626" stroke-width="3" points="140.00,262.68 265.83,127.90 391.67,249.46 517.50,186.04 643.33,289.10 769.17,257.39 895.00,262.02"/>
+<circle cx="140.00" cy="262.68" r="4.5" fill="#dc2626" stroke="#ffffff" stroke-width="1"/>
+<circle cx="265.83" cy="127.90" r="4.5" fill="#dc2626" stroke="#ffffff" stroke-width="1"/>
+<circle cx="391.67" cy="249.46" r="4.5" fill="#dc2626" stroke="#ffffff" stroke-width="1"/>
+<circle cx="517.50" cy="186.04" r="4.5" fill="#dc2626" stroke="#ffffff" stroke-width="1"/>
+<circle cx="643.33" cy="289.10" r="4.5" fill="#dc2626" stroke="#ffffff" stroke-width="1"/>
+<circle cx="769.17" cy="257.39" r="4.5" fill="#dc2626" stroke="#ffffff" stroke-width="1"/>
+<circle cx="895.00" cy="262.02" r="4.5" fill="#dc2626" stroke="#ffffff" stroke-width="1"/>
+<rect x="760" y="94" width="10" height="10" fill="#dc2626"/>
+<text x="776" y="103" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#334155">Bits/s</text>
+  <rect x="50" y="410" width="880" height="270" rx="18" fill="#fbfbfd" stroke="#d9dce3"/>
+<text x="68" y="436" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#1f2937">Collision rate</text>
+<text x="68" y="460" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#4b5563">Collision rate (%)</text>
+<line x1="140" y1="632" x2="895" y2="632" stroke="#334155" stroke-width="1.2"/>
+<line x1="140" y1="445" x2="140" y2="632" stroke="#334155" stroke-width="1.2"/>
+<line x1="135" y1="632.0" x2="140" y2="632.0" stroke="#334155" stroke-width="1"/>
+<text x="130" y="636.0" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">0.00</text>
+<line x1="135" y1="585.25" x2="140" y2="585.25" stroke="#334155" stroke-width="1"/>
+<text x="130" y="589.25" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">0.27</text>
+<line x1="135" y1="538.5" x2="140" y2="538.5" stroke="#334155" stroke-width="1"/>
+<text x="130" y="542.5" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">0.54</text>
+<line x1="135" y1="491.75" x2="140" y2="491.75" stroke="#334155" stroke-width="1"/>
+<text x="130" y="495.75" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">0.81</text>
+<line x1="135" y1="445.0" x2="140" y2="445.0" stroke="#334155" stroke-width="1"/>
+<text x="130" y="449.0" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">1.08</text>
+<line x1="140.0" y1="632" x2="140.0" y2="637" stroke="#334155" stroke-width="1"/>
+<text x="140.0" y="652" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">15</text>
+<line x1="265.8333333333333" y1="632" x2="265.8333333333333" y2="637" stroke="#334155" stroke-width="1"/>
+<text x="265.8333333333333" y="652" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">23</text>
+<line x1="391.66666666666663" y1="632" x2="391.66666666666663" y2="637" stroke="#334155" stroke-width="1"/>
+<text x="391.66666666666663" y="652" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">31</text>
+<line x1="517.5" y1="632" x2="517.5" y2="637" stroke="#334155" stroke-width="1"/>
+<text x="517.5" y="652" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">39</text>
+<line x1="643.3333333333333" y1="632" x2="643.3333333333333" y2="637" stroke="#334155" stroke-width="1"/>
+<text x="643.3333333333333" y="652" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">47</text>
+<line x1="769.1666666666666" y1="632" x2="769.1666666666666" y2="637" stroke="#334155" stroke-width="1"/>
+<text x="769.1666666666666" y="652" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">55</text>
+<line x1="895.0" y1="632" x2="895.0" y2="637" stroke="#334155" stroke-width="1"/>
+<text x="895.0" y="652" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">63</text>
+<polyline fill="none" stroke="#dc2626" stroke-width="3" points="140.00,632.00 265.83,632.00 391.67,632.00 517.50,632.00 643.33,632.00 769.17,632.00 895.00,632.00"/>
+<circle cx="140.00" cy="632.00" r="4.5" fill="#dc2626" stroke="#ffffff" stroke-width="1"/>
+<circle cx="265.83" cy="632.00" r="4.5" fill="#dc2626" stroke="#ffffff" stroke-width="1"/>
+<circle cx="391.67" cy="632.00" r="4.5" fill="#dc2626" stroke="#ffffff" stroke-width="1"/>
+<circle cx="517.50" cy="632.00" r="4.5" fill="#dc2626" stroke="#ffffff" stroke-width="1"/>
+<circle cx="643.33" cy="632.00" r="4.5" fill="#dc2626" stroke="#ffffff" stroke-width="1"/>
+<circle cx="769.17" cy="632.00" r="4.5" fill="#dc2626" stroke="#ffffff" stroke-width="1"/>
+<circle cx="895.00" cy="632.00" r="4.5" fill="#dc2626" stroke="#ffffff" stroke-width="1"/>
+<rect x="760" y="424" width="10" height="10" fill="#dc2626"/>
+<text x="776" y="433" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#334155">Collision rate</text>
+  <rect x="50" y="740" width="880" height="270" rx="18" fill="#fbfbfd" stroke="#d9dce3"/>
+<text x="68" y="766" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#1f2937">Transmission delay</text>
+<text x="68" y="790" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#4b5563">Delay (ms)</text>
+<line x1="140" y1="962" x2="895" y2="962" stroke="#334155" stroke-width="1.2"/>
+<line x1="140" y1="775" x2="140" y2="962" stroke="#334155" stroke-width="1.2"/>
+<line x1="135" y1="962.0" x2="140" y2="962.0" stroke="#334155" stroke-width="1"/>
+<text x="130" y="966.0" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">1.23</text>
+<line x1="135" y1="915.25" x2="140" y2="915.25" stroke="#334155" stroke-width="1"/>
+<text x="130" y="919.25" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">1.39</text>
+<line x1="135" y1="868.5" x2="140" y2="868.5" stroke="#334155" stroke-width="1"/>
+<text x="130" y="872.5" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">1.55</text>
+<line x1="135" y1="821.75" x2="140" y2="821.75" stroke="#334155" stroke-width="1"/>
+<text x="130" y="825.75" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">1.71</text>
+<line x1="135" y1="775.0" x2="140" y2="775.0" stroke="#334155" stroke-width="1"/>
+<text x="130" y="779.0" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">1.87</text>
+<line x1="140.0" y1="962" x2="140.0" y2="967" stroke="#334155" stroke-width="1"/>
+<text x="140.0" y="982" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">15</text>
+<line x1="265.8333333333333" y1="962" x2="265.8333333333333" y2="967" stroke="#334155" stroke-width="1"/>
+<text x="265.8333333333333" y="982" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">23</text>
+<line x1="391.66666666666663" y1="962" x2="391.66666666666663" y2="967" stroke="#334155" stroke-width="1"/>
+<text x="391.66666666666663" y="982" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">31</text>
+<line x1="517.5" y1="962" x2="517.5" y2="967" stroke="#334155" stroke-width="1"/>
+<text x="517.5" y="982" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">39</text>
+<line x1="643.3333333333333" y1="962" x2="643.3333333333333" y2="967" stroke="#334155" stroke-width="1"/>
+<text x="643.3333333333333" y="982" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">47</text>
+<line x1="769.1666666666666" y1="962" x2="769.1666666666666" y2="967" stroke="#334155" stroke-width="1"/>
+<text x="769.1666666666666" y="982" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">55</text>
+<line x1="895.0" y1="962" x2="895.0" y2="967" stroke="#334155" stroke-width="1"/>
+<text x="895.0" y="982" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">63</text>
+<polyline fill="none" stroke="#059669" stroke-width="3" points="140.00,949.10 265.83,920.50 391.67,895.39 517.50,866.92 643.33,842.63 769.17,815.71 895.00,787.90"/>
+<circle cx="140.00" cy="949.10" r="4.5" fill="#059669" stroke="#ffffff" stroke-width="1"/>
+<circle cx="265.83" cy="920.50" r="4.5" fill="#059669" stroke="#ffffff" stroke-width="1"/>
+<circle cx="391.67" cy="895.39" r="4.5" fill="#059669" stroke="#ffffff" stroke-width="1"/>
+<circle cx="517.50" cy="866.92" r="4.5" fill="#059669" stroke="#ffffff" stroke-width="1"/>
+<circle cx="643.33" cy="842.63" r="4.5" fill="#059669" stroke="#ffffff" stroke-width="1"/>
+<circle cx="769.17" cy="815.71" r="4.5" fill="#059669" stroke="#ffffff" stroke-width="1"/>
+<circle cx="895.00" cy="787.90" r="4.5" fill="#059669" stroke="#ffffff" stroke-width="1"/>
+<rect x="760" y="754" width="10" height="10" fill="#059669"/>
+<text x="776" y="763" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#334155">Mean delay</text>
+  <text x="956" y="1142" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#64748b">Generated by csma_ca_sim.py</text>
+</svg>
