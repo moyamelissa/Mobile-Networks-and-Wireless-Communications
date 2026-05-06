@@ -94,6 +94,7 @@ class SimulationResult:
     throughput_packets_per_s: float
     throughput_bits_per_s: float
     channel_utilization: float
+    offered_load_packets_per_s: float
     collision_rate: float
     mean_delay_s: float
     generated_packets: int
@@ -164,7 +165,8 @@ class CSMACASimulator:
 
         throughput_packets_per_s = self.successful_packets / self.config.simulation_time if self.config.simulation_time > 0 else 0.0
         throughput_bits_per_s = self.successful_bits / self.config.simulation_time if self.config.simulation_time > 0 else 0.0
-        channel_utilization = (self.successful_packets * self.config.packet_duration / self.config.simulation_time) if self.config.simulation_time > 0 else 0.0
+        channel_utilization = (self.successful_bits / (self.config.simulation_time * self.config.packet_bits)) if self.config.simulation_time > 0 and self.config.packet_bits > 0 else 0.0
+        offered_load_packets_per_s = self.generated_packets / self.config.simulation_time if self.config.simulation_time > 0 else 0.0
         collision_rate = self.collided_packets / self.total_attempts if self.total_attempts > 0 else 0.0
         mean_delay_s = self.delay_sum / self.successful_packets if self.successful_packets > 0 else 0.0
 
@@ -172,6 +174,7 @@ class CSMACASimulator:
             throughput_packets_per_s=throughput_packets_per_s,
             throughput_bits_per_s=throughput_bits_per_s,
             channel_utilization=channel_utilization,
+            offered_load_packets_per_s=offered_load_packets_per_s,
             collision_rate=collision_rate,
             mean_delay_s=mean_delay_s,
             generated_packets=self.generated_packets,
@@ -409,6 +412,7 @@ def average_results(results: list[SimulationResult]) -> SimulationResult:
         throughput_packets_per_s=mean(result.throughput_packets_per_s for result in results),
         throughput_bits_per_s=mean(result.throughput_bits_per_s for result in results),
         channel_utilization=mean(result.channel_utilization for result in results),
+        offered_load_packets_per_s=mean(result.offered_load_packets_per_s for result in results),
         collision_rate=mean(result.collision_rate for result in results),
         mean_delay_s=mean(result.mean_delay_s for result in results),
         generated_packets=sum(result.generated_packets for result in results),
@@ -532,6 +536,7 @@ def print_result(config: SimulationConfig, result: SimulationResult) -> None:
     print(f"  Throughput             : {result.throughput_packets_per_s:.4f} packets/s")
     print(f"  Throughput             : {result.throughput_bits_per_s:.4f} bits/s")
     print(f"  Channel utilization    : {result.channel_utilization * 100:.2f} %")
+    print(f"  Offered load           : {result.offered_load_packets_per_s:.4f} packets/s")
     print(f"  Mean collision rate    : {result.collision_rate * 100:.2f} %")
     print(f"  Mean transmission delay: {result.mean_delay_s * 1000:.4f} ms")
     print(f"  Generated packets      : {result.generated_packets}")

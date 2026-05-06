@@ -627,6 +627,7 @@ class TestPrintResult:
         assert "Stations" in captured.out
         assert "Throughput" in captured.out
         assert "Channel utilization" in captured.out
+        assert "Offered load" in captured.out
         assert "collision" in captured.out
 
     def test_print_result_with_rtscts(self, capsys):
@@ -1050,6 +1051,7 @@ class TestIntegration:
             throughput_packets_per_s=0.0,
             throughput_bits_per_s=0.0,
             channel_utilization=0.0,
+            offered_load_packets_per_s=0.0,
             collision_rate=0.0,
             mean_delay_s=0.0,
             generated_packets=0,

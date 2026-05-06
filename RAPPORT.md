@@ -124,8 +124,11 @@ Les expériences ont été menées avec les paramètres suivants :
 - **Temps de simulation** : 5 secondes par run
 - **Nombre de répétitions** : 10 runs par point de paramètre
 - **Métriques** : débit (bits/s), taux de collision (%), délai moyen (ms)
+- **Indicateurs complémentaires** : utilisation du canal, trafic offert (paquets/s)
 
 Chaque expérience est répétée plusieurs fois avec des graines aléatoires différentes afin de réduire la variabilité statistique et d'obtenir des courbes plus stables.
+
+Le trafic offert au réseau est aussi estimé en paquets/s afin de relier la charge générée aux performances observées.
 
 ### 5.2 Résultats Baseline (sans RTS/CTS)
 
@@ -148,6 +151,7 @@ N= 20 | débit =  8927280 bits/s | collision =  0.00 % | délai =  6.94 ms
 - Le délai moyen augmente graduellement, passant de 1.2 ms à 7.0 ms
 - L'algorithme de backoff exponentiel maintient une excellente stabilité
 - L'utilisation du canal reste élevée même sans collisions, ce qui confirme que la charge utile est bien transmise plutôt que perdue
+- Le trafic offert permet de situer le régime de charge et d'interpréter la saturation du réseau
 
 ### 5.3 Résultats avec RTS/CTS
 
