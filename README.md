@@ -189,16 +189,20 @@ Des expériences comparatives ont montré :
 
 ```
 .
-├── csma_ca_sim.py              # Code principal (670+ lignes, commentaires français)
+├── csma_ca_sim.py              # Code principal du simulateur
 ├── test_csma_ca_sim.py         # Suite de tests unitaires
-├── README.md                   # Ce fichier
+├── README.md                   # Guide rapide du projet
 ├── RAPPORT.md                  # Rapport académique complet (français)
-├── requirements.txt            # Dépendances (aucune pour fonctionnement)
-├── requirements-dev.txt        # Dépendances de développement (pytest, coverage)
-├── .github/workflows/
-│   └── tests.yml              # Workflow GitHub Actions
-├── results_baseline.svg        # Graphique résultats sans RTS/CTS
-└── results_rtscts.svg         # Graphique résultats avec RTS/CTS
+├── VERIFICATION_DEVOIR.md      # Note de vérification du devoir
+├── CODE_COMMENTAIRE_COMPLET.md # Annexe avec le code commenté
+├── requirements.txt            # Dépendances d'exécution
+├── requirements-dev.txt        # Dépendances de développement
+├── scripts/                    # Scripts utilitaires de génération
+├── Graphiques/                 # Graphiques SVG générés et versionnés
+├── diagrams/                   # Diagrammes explicatifs du protocole
+├── .github/workflows/          # Automatisation GitHub Actions
+│   └── tests.yml               # Workflow GitHub Actions
+└── .gitignore                  # Fichiers et dossiers ignorés
 ```
 
 ---
