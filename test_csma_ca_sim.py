@@ -11,6 +11,7 @@ from unittest.mock import patch
 from io import StringIO
 
 from csma_ca_sim import (
+    EVENT_ARRIVAL,
     SimulationConfig,
     PacketState,
     StationState,
@@ -103,6 +104,11 @@ class TestStationState:
         station.nav_until = 2.5
         assert station.nav_until == 2.5
 
+    def test_station_queue_defaults(self):
+        """Vérifier qu'une file FIFO existe par station."""
+        station = StationState(station_id=2)
+        assert len(station.queue) == 0
+
 
 class TestSlotBoundary:
     """Tests pour le calcul de limites de slots."""
@@ -157,6 +163,8 @@ class TestCSMACASimulator:
         assert result.successful_packets > 0
         assert result.collision_rate >= 0.0
         assert result.mean_delay_s > 0
+        # Vérifie que l'utilisation du canal est bien calculée.
+        assert result.channel_utilization >= 0
 
     def test_simple_run_with_rtscts(self):
         """Simulation avec RTS/CTS activé."""
@@ -246,6 +254,7 @@ class TestCSMACASimulator:
         assert result.successful_packets > 0
         # À charge élevée, la simulation doit produire des résultats valides
         assert result.total_attempts >= result.successful_packets
+        assert result.channel_utilization > 0  # Assert that channel utilization is populated
 
     def test_single_station(self):
         """Test avec une seule station (pas de collision)."""
@@ -561,33 +570,30 @@ class TestRTSCTSMechanism:
 
     def test_rtscts_vs_baseline(self):
         """Comparer RTS/CTS vs baseline sur même charge."""
-        base_config = SimulationConfig(
-            station_count=6,
-            arrival_rate=30.0,
-            simulation_time=2.0
-        )
-        
-        # Baseline
         config_baseline = SimulationConfig(
-            station_count=6,
-            arrival_rate=30.0,
+            station_count=8,
+            arrival_rate=50.0,
             simulation_time=2.0,
-            seed=3333
+            seed=3333,
         )
         result_baseline = run_single_experiment(config_baseline)
         
         # RTS/CTS
         config_rtscts = SimulationConfig(
-            station_count=6,
-            arrival_rate=30.0,
+            station_count=8,
+            arrival_rate=50.0,
             simulation_time=2.0,
             rtscts=True,
-            seed=3333  # Même seed pour comparaison
+            seed=3333  # Même graine pour comparer à charge identique.
         )
         result_rtscts = run_single_experiment(config_rtscts)
         
-        # Les résultats devraient différer (RTS/CTS a surcharge)
+        # Les métriques doivent différer : l'activation RTS/CTS modifie la contention,
+        # le débit utile et le délai observé.
         assert result_baseline.throughput_packets_per_s != result_rtscts.throughput_packets_per_s
+        assert result_baseline.mean_delay_s != result_rtscts.mean_delay_s
+        assert result_baseline.channel_utilization >= 0
+        assert result_rtscts.channel_utilization >= 0
 
     def test_rtscts_nav_protection(self):
         """Vérifier que NAV est utilisé avec RTS/CTS."""
@@ -620,6 +626,7 @@ class TestPrintResult:
         assert "Results" in captured.out
         assert "Stations" in captured.out
         assert "Throughput" in captured.out
+        assert "Channel utilization" in captured.out
         assert "collision" in captured.out
 
     def test_print_result_with_rtscts(self, capsys):
@@ -1042,6 +1049,7 @@ class TestIntegration:
         result = SimulationResult(
             throughput_packets_per_s=0.0,
             throughput_bits_per_s=0.0,
+            channel_utilization=0.0,
             collision_rate=0.0,
             mean_delay_s=0.0,
             generated_packets=0,
@@ -1109,6 +1117,26 @@ class TestIntegration:
         )
         result = run_single_experiment(config)
         assert result.successful_packets > 0
+
+    def test_station_fifo_queue_processes_multiple_arrivals(self):
+        """Vérifier qu'une station sert plusieurs paquets au lieu d'en perdre."""
+        config = SimulationConfig(
+            station_count=1,
+            arrival_rate=0.0,
+            simulation_time=0.02,
+            packet_duration=0.002,
+            slot_time=1e-6,
+            seed=2424,
+        )
+        simulator = CSMACASimulator(config)
+        simulator._push_event(0.0, EVENT_ARRIVAL, 0)
+        simulator._push_event(1e-6, EVENT_ARRIVAL, 0)
+
+        result = simulator.run()
+
+        assert result.generated_packets == 2
+        assert result.successful_packets == 2
+        assert len(simulator.stations[0].queue) == 0
 
 
 if __name__ == "__main__":

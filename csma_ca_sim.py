@@ -4,14 +4,16 @@ import argparse
 import heapq
 import math
 import random
-from dataclasses import dataclass as _dataclass
+from collections import deque
+from dataclasses import dataclass as _dataclass, field
 
-# dataclass 'slots' parameter was added in Python 3.10. Provide a thin
-# compatibility wrapper so the same source works on 3.8/3.9 (CI) and newer
-# interpreters (local dev). If 'slots' is not supported, drop it.
+# Le paramètre `slots` de `dataclass` n'existe qu'à partir de Python 3.10.
+# Cette compatibilité permet de garder un seul code source pour la CI en 3.8/3.9
+# et les environnements locaux plus récents ; si `slots` n'est pas disponible,
+# on le retire simplement.
 _DATACLASS_SUPPORTS_SLOTS = True
 try:
-    # try constructing a dataclass with slots to detect support
+    # On crée une dataclass de test pour savoir si l'interpréteur gère `slots`.
     _dataclass(slots=True)(type("_X", (), {}))
 except TypeError:
     _DATACLASS_SUPPORTS_SLOTS = False
@@ -43,8 +45,8 @@ def next_slot_boundary(time_value: float, slot_time: float) -> float:
 
 @dataclass_compat(slots=True)
 class SimulationConfig:
-    # Configuration globale de la simulation.
-    # Contient les paramètres MAC et physiques utilisés par le simulateur.
+    # Paramètres globaux de la simulation.
+    # Ils regroupent les hypothèses MAC et temporelles qui pilotent tout le modèle.
     station_count: int = 8
     arrival_rate: float = 20.0
     simulation_time: float = 20.0
@@ -64,9 +66,8 @@ class SimulationConfig:
 
 @dataclass_compat(slots=True)
 class PacketState:
-    # État d'un paquet en attente dans une station.
-    # `arrival_time` : instant de génération du paquet.
-    # `attempts` : nombre de tentatives de transmission effectuées.
+    # Représente une trame en attente de transmission dans une station.
+    # `arrival_time` sert à calculer le délai moyen, `attempts` à suivre les retransmissions.
     arrival_time: float
     attempts: int = 0
 
@@ -74,13 +75,13 @@ class PacketState:
 @dataclass_compat(slots=True)
 class StationState:
     # État MAC d'une station.
-    # `packet` : paquet en cours (une seule file supportée par simplification)
-    # `contention_window` : taille actuelle de la fenêtre de contention W
-    # `backoff` : compteur de backoff en nombre de slots
-    # `retries` : nombre de retransmissions déjà effectuées
-    # `nav_until` : si >0, intervalle pendant lequel la station respecte le NAV
+    # `packet` garde la trame active, `queue` stocke les trames suivantes,
+    # afin de ne pas perdre les arrivées lorsqu'une station est déjà occupée.
+    # `contention_window`, `backoff` et `retries` modélisent l'accès au canal.
+    # `nav_until` matérialise la réservation du médium imposée par RTS/CTS.
     station_id: int
     packet: Optional[PacketState] = None
+    queue: deque[PacketState] = field(default_factory=deque)
     contention_window: int = 0
     backoff: int = 0
     retries: int = 0
@@ -89,9 +90,10 @@ class StationState:
 
 @dataclass_compat(slots=True)
 class SimulationResult:
-    # Résultats agrégés de la simulation (pour affichage / sauvegarde)
+    # Résultats agrégés de la simulation, utilisés pour l'affichage et les graphiques.
     throughput_packets_per_s: float
     throughput_bits_per_s: float
+    channel_utilization: float
     collision_rate: float
     mean_delay_s: float
     generated_packets: int
@@ -103,7 +105,7 @@ class SimulationResult:
 
 @dataclass_compat(slots=True)
 class ExperimentPoint:
-    # Structure simple pour stocker un point d'une série (ex: N stations -> métriques)
+    # Un point de série expérimentale : une valeur de paramètre et les métriques associées.
     x_value: int
     throughput_packets_per_s: float
     throughput_bits_per_s: float
@@ -162,12 +164,14 @@ class CSMACASimulator:
 
         throughput_packets_per_s = self.successful_packets / self.config.simulation_time if self.config.simulation_time > 0 else 0.0
         throughput_bits_per_s = self.successful_bits / self.config.simulation_time if self.config.simulation_time > 0 else 0.0
+        channel_utilization = (self.successful_packets * self.config.packet_duration / self.config.simulation_time) if self.config.simulation_time > 0 else 0.0
         collision_rate = self.collided_packets / self.total_attempts if self.total_attempts > 0 else 0.0
         mean_delay_s = self.delay_sum / self.successful_packets if self.successful_packets > 0 else 0.0
 
         return SimulationResult(
             throughput_packets_per_s=throughput_packets_per_s,
             throughput_bits_per_s=throughput_bits_per_s,
+            channel_utilization=channel_utilization,
             collision_rate=collision_rate,
             mean_delay_s=mean_delay_s,
             generated_packets=self.generated_packets,
@@ -188,6 +192,27 @@ class CSMACASimulator:
 
     def _sample_backoff(self, contention_window: int) -> int:
         return self.random.randint(0, contention_window)
+
+    def _prime_station_for_contention(self, station_id: int, current_time: float) -> None:
+        station = self.stations[station_id]
+        if station.packet is None:
+            return
+
+        station.contention_window = self.config.wmin
+        station.retries = 0
+        station.backoff = self._sample_backoff(station.contention_window)
+        self.contenders.add(station_id)
+
+        if self.current_transmission is None:
+            self._schedule_slot_tick_if_needed(current_time)
+
+    def _activate_next_queued_packet(self, station_id: int, current_time: float) -> None:
+        station = self.stations[station_id]
+        if station.packet is not None or not station.queue:
+            return
+
+        station.packet = station.queue.popleft()
+        self._prime_station_for_contention(station_id, current_time)
 
     def _schedule_next_arrival(self, station_id: int, base_time: float) -> None:
         next_arrival = base_time + self._sample_interarrival()
@@ -217,7 +242,7 @@ class CSMACASimulator:
 
         self.total_attempts += len(station_ids)
         if len(station_ids) > 1:
-            # logical collision during data transmission
+            # Collision logique : plusieurs stations ont atteint la transmission en même temps.
             release_time = current_time + self.config.packet_duration
         else:
             release_time = current_time + self.config.packet_duration + self.config.sifs
@@ -243,24 +268,21 @@ class CSMACASimulator:
 
     def _handle_arrival(self, current_time: float, station_id: int) -> None:
         station = self.stations[station_id]
-        if station.packet is not None:
+        self.generated_packets += 1
+        packet = PacketState(arrival_time=current_time)
+
+        if station.packet is None:
+            station.packet = packet
+            self._prime_station_for_contention(station_id, current_time)
             return
 
-        self.generated_packets += 1
-        station.packet = PacketState(arrival_time=current_time)
-        station.contention_window = self.config.wmin
-        station.retries = 0
-        station.backoff = self._sample_backoff(station.contention_window)
-        self.contenders.add(station_id)
-
-        if self.current_transmission is None:
-            self._schedule_slot_tick_if_needed(current_time)
+        station.queue.append(packet)
 
     def _handle_slot_tick(self, current_time: float) -> None:
         if self.current_transmission is not None or not self.contenders:
             return
 
-        # Only stations not under NAV are active contenders
+        # Seules les stations hors NAV peuvent réellement contester le médium.
         active = [s for s in self.contenders if self.stations[s].nav_until <= current_time]
 
         ready_to_send = [station_id for station_id in active if self.stations[station_id].backoff == 0]
@@ -290,7 +312,7 @@ class CSMACASimulator:
             return
 
         if len(self.current_transmission) > 1:
-            # RTS collision: handle retries
+            # Collision RTS : on relance les stations concernées avec un nouveau backoff.
             affected_stations = list(self.current_transmission)
             self.collided_packets += len(affected_stations)
             self.current_transmission = None
@@ -314,11 +336,11 @@ class CSMACASimulator:
             self._schedule_slot_tick_if_needed(current_time)
             return
 
-        # Single RTS succeeded: AP will send CTS after SIFS, then data
+        # RTS réussi : le point d'accès réserve ensuite le médium avant la donnée.
         station_id = next(iter(self.current_transmission))
         data_end_time = current_time + self.config.sifs + self.config.cts_duration + self.config.sifs + self.config.packet_duration
 
-        # all other stations set NAV until data_end_time
+        # Toutes les autres stations placent leur NAV jusqu'à la fin de la trame.
         for s in range(len(self.stations)):
             if s == station_id:
                 continue
@@ -326,7 +348,7 @@ class CSMACASimulator:
             if st.packet is not None:
                 st.nav_until = data_end_time
 
-        # schedule data end
+        # On programme la fin de la transmission de données.
         self._push_event(data_end_time, EVENT_DATA_END, -1)
 
     def _handle_data_end(self, current_time: float) -> None:
@@ -345,11 +367,12 @@ class CSMACASimulator:
             station.retries = 0
             self.current_transmission = None
             self.contention_open_time = current_time + self.config.difs
+            self._activate_next_queued_packet(station_id, current_time)
             self._schedule_next_arrival(station_id, current_time)
             self._schedule_slot_tick_if_needed(current_time)
             return
 
-        # Data collision (rare if RTS/CTS used) or simultaneous data transmissions
+        # Collision de données : cas rare avec RTS/CTS, ou plusieurs émetteurs synchrones.
         affected_stations = list(self.current_transmission)
         self.current_transmission = None
         self.contention_open_time = current_time + self.config.difs
@@ -362,6 +385,7 @@ class CSMACASimulator:
                 station.packet = None
                 station.contention_window = self.config.wmin
                 station.retries = 0
+                self._activate_next_queued_packet(station_id, current_time)
                 self._schedule_next_arrival(station_id, current_time)
                 continue
 
@@ -384,6 +408,7 @@ def average_results(results: list[SimulationResult]) -> SimulationResult:
     return SimulationResult(
         throughput_packets_per_s=mean(result.throughput_packets_per_s for result in results),
         throughput_bits_per_s=mean(result.throughput_bits_per_s for result in results),
+        channel_utilization=mean(result.channel_utilization for result in results),
         collision_rate=mean(result.collision_rate for result in results),
         mean_delay_s=mean(result.mean_delay_s for result in results),
         generated_packets=sum(result.generated_packets for result in results),
@@ -506,6 +531,7 @@ def print_result(config: SimulationConfig, result: SimulationResult) -> None:
     print("Results")
     print(f"  Throughput             : {result.throughput_packets_per_s:.4f} packets/s")
     print(f"  Throughput             : {result.throughput_bits_per_s:.4f} bits/s")
+    print(f"  Channel utilization    : {result.channel_utilization * 100:.2f} %")
     print(f"  Mean collision rate    : {result.collision_rate * 100:.2f} %")
     print(f"  Mean transmission delay: {result.mean_delay_s * 1000:.4f} ms")
     print(f"  Generated packets      : {result.generated_packets}")

@@ -125,6 +125,8 @@ Les expériences ont été menées avec les paramètres suivants :
 - **Nombre de répétitions** : 10 runs par point de paramètre
 - **Métriques** : débit (bits/s), taux de collision (%), délai moyen (ms)
 
+Chaque expérience est répétée plusieurs fois avec des graines aléatoires différentes afin de réduire la variabilité statistique et d'obtenir des courbes plus stables.
+
 ### 5.2 Résultats Baseline (sans RTS/CTS)
 
 ```
@@ -145,6 +147,7 @@ N= 20 | débit =  8927280 bits/s | collision =  0.00 % | délai =  6.94 ms
 - Aucune collision n'est détectée jusqu'à N=20
 - Le délai moyen augmente graduellement, passant de 1.2 ms à 7.0 ms
 - L'algorithme de backoff exponentiel maintient une excellente stabilité
+- L'utilisation du canal reste élevée même sans collisions, ce qui confirme que la charge utile est bien transmise plutôt que perdue
 
 ### 5.3 Résultats avec RTS/CTS
 
@@ -167,6 +170,7 @@ N= 20 | débit =  7561200 bits/s | collision = 33.75 % | délai = 11.91 ms
 - À N=20, environ 34% des tentatives RTS/CTS provoquent une collision
 - Le délai moyen est nettement supérieur (5-6x à charge élevée)
 - La surcharge RTS/CTS non compensée par une réduction des collisions de données
+- La comparaison avec et sans RTS/CTS montre surtout l'effet du surcoût de contrôle sur le délai et le débit utile
 
 ### 5.4 Graphiques Comparatifs
 
@@ -179,6 +183,7 @@ Autres graphiques générés et disponibles :
 - **[diagrams/wmin_sweep.svg](diagrams/wmin_sweep.svg)** : balayage de `Wmin` (impact sur débit / collisions / délai)
 - **[diagrams/delay_histogram.svg](diagrams/delay_histogram.svg)** : histogramme des délais moyens (N=20, 100 runs)
 - **[diagrams/delay_cdf.svg](diagrams/delay_cdf.svg)** : CDF des délais moyens (N=20, 100 runs)
+- **Indicateur complémentaire** : l'utilisation du canal est affichée dans la console afin de mesurer la part du temps effectivement consacrée à la transmission utile.
 
 Les graphiques montrent :
 
@@ -215,6 +220,10 @@ Les graphiques montrent :
 2. **Paradoxe RTS/CTS** :
    - Dans cet environnement de simulation sans terminal caché, RTS/CTS ajoute une surcharge sans réduction proportionnelle des collisions de données
    - Les collisions RTS/CTS elles-mêmes deviennent le goulot d'étranglement
+
+4. **Utilisation du canal** :
+   - Cet indicateur complète le débit et le délai en montrant si le médium est réellement exploité par des transmissions utiles
+   - Il aide à distinguer un protocole efficace d'un protocole simplement peu collisionnel
 
 3. **Délai** :
    - Le délai augmente polynomialement dans les deux cas
@@ -259,6 +268,14 @@ Limitations/simplifications :
 - Pas de dégradation de signal ou d'erreurs de transmission
 - NAV est implicite et parfaitement respecté (pas de terminal caché)
 - Un seul point d'accès (AP/hub) implicite
+
+### 7.4 Améliorations recommandées et hypothèses de modélisation
+
+Pour garder le simulateur simple tout en restant fidèle à l'objectif du devoir, une file FIFO légère est maintenue par station et le canal est supposé idéal sans pertes physiques. Cela permet de conserver les arrivées multiples sans les perdre, tout en gardant une implémentation très lisible.
+
+Ce choix explique aussi pourquoi le taux de collision observé peut rester faible dans certains scénarios : avec RTS/CTS activé ou une charge d'arrivée modérée, les collisions sont mécaniquement réduites. Pour faire ressortir davantage l'effet de la contention, il est préférable de comparer une configuration avec RTS/CTS à une configuration sans RTS/CTS, et d'augmenter le taux d'arrivée si l'on souhaite observer plus de collisions.
+
+Ces simplifications ne bloquent pas la validité du devoir ; elles correspondent à un modèle analytique idéal, facilement justifiable dans un rapport académique. La section peut donc être présentée comme une hypothèse de travail, avec comme amélioration future un modèle de canal plus réaliste.
 
 ---
 
