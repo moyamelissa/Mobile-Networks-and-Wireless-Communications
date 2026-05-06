@@ -12,5 +12,7 @@ venv/
 env/
 
 # Generated graphs and experiment outputs
-Graphiques/
+Graphiques/*
+!Graphiques/*.svg
+!Graphiques/.gitkeep
 results_*.svg
