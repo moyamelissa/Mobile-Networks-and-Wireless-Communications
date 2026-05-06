@@ -165,7 +165,11 @@ class CSMACASimulator:
 
         throughput_packets_per_s = self.successful_packets / self.config.simulation_time if self.config.simulation_time > 0 else 0.0
         throughput_bits_per_s = self.successful_bits / self.config.simulation_time if self.config.simulation_time > 0 else 0.0
-        channel_utilization = (self.successful_bits / (self.config.simulation_time * self.config.packet_bits)) if self.config.simulation_time > 0 and self.config.packet_bits > 0 else 0.0
+        channel_utilization = (
+            (self.successful_packets * self.config.packet_duration) / self.config.simulation_time
+            if self.config.simulation_time > 0 and self.config.packet_duration > 0
+            else 0.0
+        )
         offered_load_packets_per_s = self.generated_packets / self.config.simulation_time if self.config.simulation_time > 0 else 0.0
         collision_rate = self.collided_packets / self.total_attempts if self.total_attempts > 0 else 0.0
         mean_delay_s = self.delay_sum / self.successful_packets if self.successful_packets > 0 else 0.0

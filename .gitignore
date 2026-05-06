@@ -1,0 +1,16 @@
+# Python cache and test artifacts
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Local virtual environments
+.venv/
+venv/
+env/
+
+# Generated graphs and experiment outputs
+Graphiques/
+results_*.svg

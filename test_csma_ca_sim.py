@@ -116,7 +116,7 @@ class TestSlotBoundary:
     def test_slot_boundary_exact(self):
         """Vérifier le slot boundary exact."""
         slot_time = 20e-6
-        # À t=0, le prochain boundary est 0
+        # À t=0, la prochaine borne de slot est 0 pour éviter tout décalage inutile.
         assert next_slot_boundary(0, slot_time) == 0.0
 
     def test_slot_boundary_mid_slot(self):
@@ -124,7 +124,7 @@ class TestSlotBoundary:
         slot_time = 20e-6
         t = 10e-6  # Milieu du premier slot
         boundary = next_slot_boundary(t, slot_time)
-        assert boundary == slot_time  # Prochain boundary au-dessus
+        assert boundary == slot_time  # La borne suivante doit être le slot immédiatement supérieur.
 
     def test_slot_boundary_multiple(self):
         """Vérifier sur plusieurs slots."""
@@ -163,7 +163,7 @@ class TestCSMACASimulator:
         assert result.successful_packets > 0
         assert result.collision_rate >= 0.0
         assert result.mean_delay_s > 0
-        # Vérifie que l'utilisation du canal est bien calculée.
+        # On vérifie cette métrique pour confirmer que le simulateur mesure bien l'usage utile du médium.
         assert result.channel_utilization >= 0
 
     def test_simple_run_with_rtscts(self):
@@ -183,7 +183,6 @@ class TestCSMACASimulator:
         """Vérifier la reproductibilité avec seed."""
         config1 = SimulationConfig(
             station_count=4,
-            arrival_rate=20.0,
             simulation_time=2.0,
             seed=789
         )
@@ -195,7 +194,7 @@ class TestCSMACASimulator:
         )
         result1 = run_single_experiment(config1)
         result2 = run_single_experiment(config2)
-        # Les résultats doivent être identiques
+        # Les deux exécutions doivent être identiques, car la même graine impose la même séquence aléatoire.
         assert result1.successful_packets == result2.successful_packets
         assert abs(result1.throughput_packets_per_s - result2.throughput_packets_per_s) < 1e-6
 
@@ -215,7 +214,7 @@ class TestCSMACASimulator:
         )
         result1 = run_single_experiment(config1)
         result2 = run_single_experiment(config2)
-        # Au moins une métrique devrait différer
+        # Une graine différente doit produire au moins une différence mesurable dans les résultats.
         assert (result1.successful_packets != result2.successful_packets or
                 result1.collision_rate != result2.collision_rate)
 
@@ -224,9 +223,9 @@ class TestCSMACASimulator:
         config = SimulationConfig(arrival_rate=10.0, seed=42)
         sim = CSMACASimulator(config)
         intervals = [sim._sample_interarrival() for _ in range(100)]
-        # Vérifier que tous les intervalles sont positifs
+        # Tous les intervalles doivent rester positifs, sinon la génération exponentielle serait invalide.
         assert all(i > 0 for i in intervals)
-        # Vérifier que la moyenne est proche de 1/arrival_rate
+        # La moyenne observée doit rester proche de l'espérance théorique d'un processus exponentiel.
         mean_interval = sum(intervals) / len(intervals)
         expected_mean = 1.0 / config.arrival_rate
         assert 0.05 < mean_interval < 0.25  # Fourchette raisonnable
@@ -236,9 +235,9 @@ class TestCSMACASimulator:
         config = SimulationConfig(seed=42)
         sim = CSMACASimulator(config)
         backoffs = [sim._sample_backoff(15) for _ in range(100)]
-        # Vérifier que les backoffs sont dans [0, 15]
+        # On vérifie l'encadrement pour s'assurer que le tirage reste dans la fenêtre de contention.
         assert all(0 <= b <= 15 for b in backoffs)
-        # Vérifier qu'il y a de la variabilité
+        # Il doit aussi y avoir de la variabilité, sinon le backoff ne jouerait plus son rôle d'anti-collision.
         assert len(set(backoffs)) > 10
 
     def test_high_load_conditions(self):
@@ -252,9 +251,44 @@ class TestCSMACASimulator:
         result = run_single_experiment(config)
         assert result.throughput_packets_per_s > 0
         assert result.successful_packets > 0
-        # À charge élevée, la simulation doit produire des résultats valides
+        # À charge élevée, on s'attend à des métriques cohérentes malgré une forte contention.
         assert result.total_attempts >= result.successful_packets
-        assert result.channel_utilization > 0  # Assert that channel utilization is populated
+        # Cette métrique doit être non nulle pour confirmer que le canal a réellement servi.
+        assert result.channel_utilization > 0
+
+    def test_delay_increases_with_load(self):
+        """Vérifier que le délai moyen augmente quand la charge devient plus forte."""
+        low_load = SimulationConfig(
+            station_count=4,
+            arrival_rate=5.0,
+            simulation_time=1.0,
+            seed=2468,
+        )
+        high_load = SimulationConfig(
+            station_count=4,
+            arrival_rate=80.0,
+            simulation_time=1.0,
+            seed=2468,
+        )
+
+        low_result = run_single_experiment(low_load)
+        high_result = run_single_experiment(high_load)
+
+        # Une charge plus forte doit augmenter les files d'attente et donc le délai observé.
+        assert high_result.mean_delay_s >= low_result.mean_delay_s
+
+    def test_channel_utilization_is_bounded(self):
+        """Vérifier que l'utilisation du canal reste bornée entre 0 et 1."""
+        config = SimulationConfig(
+            station_count=4,
+            arrival_rate=20.0,
+            simulation_time=1.0,
+            seed=3579,
+        )
+        result = run_single_experiment(config)
+
+        # Une utilisation bornée permet d'interpréter la métrique comme une fraction du temps occupé.
+        assert 0.0 <= result.channel_utilization <= 1.0
 
     def test_single_station(self):
         """Test avec une seule station (pas de collision)."""
@@ -273,11 +307,10 @@ class TestCSMACASimulator:
         config = SimulationConfig(
             station_count=4,
             arrival_rate=30.0,
-            simulation_time=2.0,
             seed=777
         )
         result = run_single_experiment(config)
-        # Vérifier les invariants
+        # Les invariants globaux doivent rester vrais même quand les métriques varient.
         assert result.successful_packets <= result.total_attempts
         assert result.collided_packets <= result.total_attempts
         assert result.successful_packets + result.dropped_packets >= 0
@@ -569,7 +602,7 @@ class TestRTSCTSMechanism:
     """Tests spécifiques au mécanisme RTS/CTS."""
 
     def test_rtscts_vs_baseline(self):
-        """Comparer RTS/CTS vs baseline sur même charge."""
+        """Comparer RTS/CTS au mode de base sur la même charge pour mesurer l'impact du protocole."""
         config_baseline = SimulationConfig(
             station_count=8,
             arrival_rate=50.0,
@@ -577,29 +610,27 @@ class TestRTSCTSMechanism:
             seed=3333,
         )
         result_baseline = run_single_experiment(config_baseline)
-        
-        # RTS/CTS
+
+        # Cas avec RTS/CTS pour isoler l'effet de la réservation du médium.
         config_rtscts = SimulationConfig(
             station_count=8,
             arrival_rate=50.0,
             simulation_time=2.0,
             rtscts=True,
-            seed=3333  # Même graine pour comparer à charge identique.
+            seed=3333  # Même graine pour comparer les deux modes dans les mêmes conditions.
         )
         result_rtscts = run_single_experiment(config_rtscts)
-        
-        # Les métriques doivent différer : l'activation RTS/CTS modifie la contention,
-        # le débit utile et le délai observé.
+
+        # Les métriques doivent différer, sinon le protocole n'aurait aucun effet observable.
         assert result_baseline.throughput_packets_per_s != result_rtscts.throughput_packets_per_s
         assert result_baseline.mean_delay_s != result_rtscts.mean_delay_s
         assert result_baseline.channel_utilization >= 0
         assert result_rtscts.channel_utilization >= 0
 
     def test_rtscts_nav_protection(self):
-        """Vérifier que NAV est utilisé avec RTS/CTS."""
+        """Vérifier que RTS/CTS active bien la protection NAV pour réserver le médium."""
         config = SimulationConfig(
             station_count=4,
-            arrival_rate=50.0,
             simulation_time=1.0,
             rtscts=True,
             rts_duration=200e-6,
@@ -607,8 +638,7 @@ class TestRTSCTSMechanism:
             seed=4444
         )
         result = run_single_experiment(config)
-        # Avec RTS/CTS, les collisions RTS doivent être rares
-        # mais devraient augmenter avec charge
+        # Avec RTS/CTS, on s'attend à une simulation stable où la réservation limite les conflits inutiles.
         assert result.successful_packets > 0
 
 
