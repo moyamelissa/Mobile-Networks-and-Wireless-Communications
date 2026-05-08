@@ -20,6 +20,7 @@ from csma_ca_sim import (
     average_results,
     sweep_stations,
     sweep_wmin,
+    sweep_kmax,
     next_slot_boundary,
     print_result,
     build_arg_parser,
@@ -479,6 +480,54 @@ class TestSweepOperations:
         
         # Les deux doivent avoir le même nombre de points
         assert len(points_1run) == len(points_5run)
+
+
+class TestSweepKmax:
+    """Tests pour le balayage de K_max."""
+
+    def test_sweep_kmax_basic(self):
+        """Test du balayage du nombre maximal de tentatives K_max."""
+        base_config = SimulationConfig(
+            station_count=8,
+            arrival_rate=50.0,
+            simulation_time=1.0,
+        )
+        points = sweep_kmax(base_config, start=1, stop=5, step=2, runs=2)
+        # (5-1)/2 + 1 = 3 points : Kmax = 1, 3, 5
+        assert len(points) == 3
+        assert points[0].x_value == 1
+        assert points[1].x_value == 3
+        assert points[2].x_value == 5
+        for point in points:
+            assert point.throughput_packets_per_s >= 0
+            assert point.mean_delay_s >= 0
+
+    def test_sweep_kmax_invalid_step(self):
+        """Vérifier l'erreur avec step <= 0."""
+        base_config = SimulationConfig()
+        with pytest.raises(ValueError):
+            sweep_kmax(base_config, start=1, stop=10, step=0, runs=1)
+
+    def test_sweep_kmax_invalid_runs(self):
+        """Vérifier l'erreur avec runs <= 0."""
+        base_config = SimulationConfig()
+        with pytest.raises(ValueError):
+            sweep_kmax(base_config, start=1, stop=10, step=2, runs=0)
+
+    def test_sweep_kmax_high_kmax_higher_delay(self):
+        """K_max élevé permet plus de tentatives et donc potentiellement plus de délai."""
+        base_config = SimulationConfig(
+            station_count=10,
+            arrival_rate=80.0,
+            simulation_time=2.0,
+            seed=42,
+        )
+        points = sweep_kmax(base_config, start=1, stop=15, step=7, runs=2)
+        # Kmax=1, Kmax=8, Kmax=15 — on vérifie que les points sont produits correctement
+        assert len(points) == 3
+        # Avec Kmax plus grand, le délai moyen devrait en général être >= Kmax petit
+        # (les paquets difficiles restent plus longtemps dans le système)
+        assert points[2].mean_delay_s >= points[0].mean_delay_s
 
 
 class TestExportAndFormat:

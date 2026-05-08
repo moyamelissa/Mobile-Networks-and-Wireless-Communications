@@ -760,6 +760,75 @@ def sweep_wmin(
     return points
 
 
+def sweep_kmax(
+    base_config: SimulationConfig,
+    start: int,
+    stop: int,
+    step: int,
+    runs: int,
+) -> list[ExperimentPoint]:
+    """Balaye le nombre maximal de tentatives K_max de start à stop par pas de step.
+
+    Pour chaque valeur de K_max, exécute `runs` simulations avec des graines différentes
+    et retourne la moyenne des métriques sous forme de liste d'ExperimentPoint.
+    Un K_max faible provoque des abandons rapides (faible délai, paquets perdus) ;
+    un K_max élevé laisse le BEB converger au prix d'un délai plus long.
+
+    Args:
+        base_config: Configuration de référence.
+        start:       Valeur minimale de K_max.
+        stop:        Valeur maximale de K_max (incluse).
+        step:        Pas d'incrémentation (doit être > 0).
+        runs:        Nombre de répétitions par configuration (doit être > 0).
+
+    Returns:
+        Liste d'ExperimentPoint triée par x_value croissant.
+
+    Raises:
+        ValueError: Si step <= 0 ou runs <= 0.
+    """
+    if step <= 0:
+        raise ValueError("step must be positive")
+    if runs <= 0:
+        raise ValueError("runs must be positive")
+
+    points: list[ExperimentPoint] = []
+    for kmax in range(start, stop + 1, step):
+        run_results: list[SimulationResult] = []
+        for repeat_index in range(runs):
+            config = SimulationConfig(
+                station_count=base_config.station_count,
+                arrival_rate=base_config.arrival_rate,
+                simulation_time=base_config.simulation_time,
+                packet_bits=base_config.packet_bits,
+                packet_duration=base_config.packet_duration,
+                slot_time=base_config.slot_time,
+                difs=base_config.difs,
+                sifs=base_config.sifs,
+                wmin=base_config.wmin,
+                wmax=base_config.wmax,
+                kmax=kmax,
+                seed=None if base_config.seed is None else base_config.seed + repeat_index + kmax * 1000,
+                rtscts=base_config.rtscts,
+                rts_duration=base_config.rts_duration,
+                cts_duration=base_config.cts_duration,
+            )
+            run_results.append(run_single_experiment(config))
+
+        averaged = average_results(run_results)
+        points.append(
+            ExperimentPoint(
+                x_value=kmax,
+                throughput_packets_per_s=averaged.throughput_packets_per_s,
+                throughput_bits_per_s=averaged.throughput_bits_per_s,
+                collision_rate=averaged.collision_rate,
+                mean_delay_s=averaged.mean_delay_s,
+            )
+        )
+
+    return points
+
+
 def print_result(config: SimulationConfig, result: SimulationResult) -> None:
     """Affiche la configuration et les métriques de simulation dans la console.
 
@@ -963,6 +1032,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     sweep_group = parser.add_mutually_exclusive_group()
     sweep_group.add_argument("--sweep-stations", nargs=3, type=int, metavar=("START", "STOP", "STEP"), help="Sweep the number of stations")
     sweep_group.add_argument("--sweep-wmin", nargs=3, type=int, metavar=("START", "STOP", "STEP"), help="Sweep the minimum contention window")
+    sweep_group.add_argument("--sweep-kmax", nargs=3, type=int, metavar=("START", "STOP", "STEP"), help="Sweep the maximum retransmission count K_max")
 
     return parser
 
@@ -1018,6 +1088,19 @@ def main() -> None:
                 f"collision={point.collision_rate * 100:6.2f} % | delay={point.mean_delay_s * 1000:8.4f} ms"
             )
         plot_points(points, "CSMA/CA : impact de la fenêtre de contention minimale", "Fenêtre de contention minimale (Wmin)", args.output)
+        print(f"Plot saved to {args.output}")
+        return
+
+    if args.sweep_kmax is not None:
+        start, stop, step = args.sweep_kmax
+        points = sweep_kmax(config, start, stop, step, args.runs)
+        print("Kmax sweep")
+        for point in points:
+            print(
+                f"Kmax={point.x_value:3d} | throughput={point.throughput_bits_per_s:12.2f} bits/s | "
+                f"collision={point.collision_rate * 100:6.2f} % | delay={point.mean_delay_s * 1000:8.4f} ms"
+            )
+        plot_points(points, "CSMA/CA : impact du nombre maximal de tentatives (K_max)", "Nombre maximal de tentatives K_max", args.output)
         print(f"Plot saved to {args.output}")
         return
 
