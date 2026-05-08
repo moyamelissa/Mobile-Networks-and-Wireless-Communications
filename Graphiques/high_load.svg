@@ -6,23 +6,23 @@
     </linearGradient>
   </defs>
   <rect width="100%" height="100%" fill="url(#bg)"/>
-  <text x="490.0" y="40" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#111827">CSMA/CA: impact of station count</text>
-  <text x="490.0" y="64" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#475569">Number of stations</text>
+  <text x="490.0" y="40" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#111827">CSMA/CA : impact du nombre de stations</text>
+  <text x="490.0" y="64" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#475569">Nombre de stations</text>
   <rect x="50" y="80" width="880" height="270" rx="18" fill="#fbfbfd" stroke="#d9dce3"/>
-<text x="68" y="106" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#1f2937">Throughput</text>
-<text x="68" y="130" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#4b5563">Bits/s</text>
+<text x="68" y="106" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#1f2937">Débit</text>
+<text x="68" y="130" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#4b5563">Débit (bits/s)</text>
 <line x1="140" y1="302" x2="895" y2="302" stroke="#334155" stroke-width="1.2"/>
 <line x1="140" y1="115" x2="140" y2="302" stroke="#334155" stroke-width="1.2"/>
 <line x1="135" y1="302.0" x2="140" y2="302.0" stroke="#334155" stroke-width="1"/>
-<text x="130" y="306.0" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">721024.00</text>
+<text x="130" y="306.0" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">732288.00</text>
 <line x1="135" y1="255.25" x2="140" y2="255.25" stroke="#334155" stroke-width="1"/>
-<text x="130" y="259.25" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">2938712.00</text>
+<text x="130" y="259.25" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">2943944.00</text>
 <line x1="135" y1="208.5" x2="140" y2="208.5" stroke="#334155" stroke-width="1"/>
-<text x="130" y="212.5" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">5156400.00</text>
+<text x="130" y="212.5" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">5155600.00</text>
 <line x1="135" y1="161.75" x2="140" y2="161.75" stroke="#334155" stroke-width="1"/>
-<text x="130" y="165.75" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">7374088.00</text>
+<text x="130" y="165.75" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">7367256.00</text>
 <line x1="135" y1="115.0" x2="140" y2="115.0" stroke="#334155" stroke-width="1"/>
-<text x="130" y="119.0" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">9591776.00</text>
+<text x="130" y="119.0" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">9578912.00</text>
 <line x1="140.0" y1="302" x2="140.0" y2="307" stroke="#334155" stroke-width="1"/>
 <text x="140.0" y="322" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">2</text>
 <line x1="223.88888888888889" y1="302" x2="223.88888888888889" y2="307" stroke="#334155" stroke-width="1"/>
@@ -43,22 +43,22 @@
 <text x="811.1111111111111" y="322" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">18</text>
 <line x1="895.0" y1="302" x2="895.0" y2="307" stroke="#334155" stroke-width="1"/>
 <text x="895.0" y="322" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">20</text>
-<polyline fill="none" stroke="#dc2626" stroke-width="3" points="140.00,289.10 223.89,261.43 307.78,233.48 391.67,205.93 475.56,181.37 559.44,158.99 643.33,139.63 727.22,128.39 811.11,127.90 895.00,131.19"/>
+<polyline fill="none" stroke="#dc2626" stroke-width="3" points="140.00,289.10 223.89,260.54 307.78,234.23 391.67,205.26 475.56,182.20 559.44,159.74 643.33,140.27 727.22,130.08 811.11,127.90 895.00,130.37"/>
 <circle cx="140.00" cy="289.10" r="4.5" fill="#dc2626" stroke="#ffffff" stroke-width="1"/>
-<circle cx="223.89" cy="261.43" r="4.5" fill="#dc2626" stroke="#ffffff" stroke-width="1"/>
-<circle cx="307.78" cy="233.48" r="4.5" fill="#dc2626" stroke="#ffffff" stroke-width="1"/>
-<circle cx="391.67" cy="205.93" r="4.5" fill="#dc2626" stroke="#ffffff" stroke-width="1"/>
-<circle cx="475.56" cy="181.37" r="4.5" fill="#dc2626" stroke="#ffffff" stroke-width="1"/>
-<circle cx="559.44" cy="158.99" r="4.5" fill="#dc2626" stroke="#ffffff" stroke-width="1"/>
-<circle cx="643.33" cy="139.63" r="4.5" fill="#dc2626" stroke="#ffffff" stroke-width="1"/>
-<circle cx="727.22" cy="128.39" r="4.5" fill="#dc2626" stroke="#ffffff" stroke-width="1"/>
+<circle cx="223.89" cy="260.54" r="4.5" fill="#dc2626" stroke="#ffffff" stroke-width="1"/>
+<circle cx="307.78" cy="234.23" r="4.5" fill="#dc2626" stroke="#ffffff" stroke-width="1"/>
+<circle cx="391.67" cy="205.26" r="4.5" fill="#dc2626" stroke="#ffffff" stroke-width="1"/>
+<circle cx="475.56" cy="182.20" r="4.5" fill="#dc2626" stroke="#ffffff" stroke-width="1"/>
+<circle cx="559.44" cy="159.74" r="4.5" fill="#dc2626" stroke="#ffffff" stroke-width="1"/>
+<circle cx="643.33" cy="140.27" r="4.5" fill="#dc2626" stroke="#ffffff" stroke-width="1"/>
+<circle cx="727.22" cy="130.08" r="4.5" fill="#dc2626" stroke="#ffffff" stroke-width="1"/>
 <circle cx="811.11" cy="127.90" r="4.5" fill="#dc2626" stroke="#ffffff" stroke-width="1"/>
-<circle cx="895.00" cy="131.19" r="4.5" fill="#dc2626" stroke="#ffffff" stroke-width="1"/>
+<circle cx="895.00" cy="130.37" r="4.5" fill="#dc2626" stroke="#ffffff" stroke-width="1"/>
 <rect x="760" y="94" width="10" height="10" fill="#dc2626"/>
-<text x="776" y="103" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#334155">Bits/s</text>
+<text x="776" y="103" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#334155">Débit (bits/s)</text>
   <rect x="50" y="410" width="880" height="270" rx="18" fill="#fbfbfd" stroke="#d9dce3"/>
-<text x="68" y="436" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#1f2937">Collision rate</text>
-<text x="68" y="460" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#4b5563">Collision rate (%)</text>
+<text x="68" y="436" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#1f2937">Taux de collision</text>
+<text x="68" y="460" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#4b5563">Taux de collision (%)</text>
 <line x1="140" y1="632" x2="895" y2="632" stroke="#334155" stroke-width="1.2"/>
 <line x1="140" y1="445" x2="140" y2="632" stroke="#334155" stroke-width="1.2"/>
 <line x1="135" y1="632.0" x2="140" y2="632.0" stroke="#334155" stroke-width="1"/>
@@ -103,22 +103,22 @@
 <circle cx="811.11" cy="632.00" r="4.5" fill="#dc2626" stroke="#ffffff" stroke-width="1"/>
 <circle cx="895.00" cy="632.00" r="4.5" fill="#dc2626" stroke="#ffffff" stroke-width="1"/>
 <rect x="760" y="424" width="10" height="10" fill="#dc2626"/>
-<text x="776" y="433" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#334155">Collision rate</text>
+<text x="776" y="433" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#334155">Taux de collision</text>
   <rect x="50" y="740" width="880" height="270" rx="18" fill="#fbfbfd" stroke="#d9dce3"/>
-<text x="68" y="766" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#1f2937">Transmission delay</text>
-<text x="68" y="790" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#4b5563">Delay (ms)</text>
+<text x="68" y="766" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#1f2937">Délai moyen</text>
+<text x="68" y="790" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#4b5563">Délai (ms)</text>
 <line x1="140" y1="962" x2="895" y2="962" stroke="#334155" stroke-width="1.2"/>
 <line x1="140" y1="775" x2="140" y2="962" stroke="#334155" stroke-width="1.2"/>
 <line x1="135" y1="962.0" x2="140" y2="962.0" stroke="#334155" stroke-width="1"/>
 <text x="130" y="966.0" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">0.46</text>
 <line x1="135" y1="915.25" x2="140" y2="915.25" stroke="#334155" stroke-width="1"/>
-<text x="130" y="919.25" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">3.12</text>
+<text x="130" y="919.25" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">3.15</text>
 <line x1="135" y1="868.5" x2="140" y2="868.5" stroke="#334155" stroke-width="1"/>
-<text x="130" y="872.5" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">5.77</text>
+<text x="130" y="872.5" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">5.85</text>
 <line x1="135" y1="821.75" x2="140" y2="821.75" stroke="#334155" stroke-width="1"/>
-<text x="130" y="825.75" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">8.42</text>
+<text x="130" y="825.75" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">8.54</text>
 <line x1="135" y1="775.0" x2="140" y2="775.0" stroke="#334155" stroke-width="1"/>
-<text x="130" y="779.0" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">11.08</text>
+<text x="130" y="779.0" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">11.24</text>
 <line x1="140.0" y1="962" x2="140.0" y2="967" stroke="#334155" stroke-width="1"/>
 <text x="140.0" y="982" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">2</text>
 <line x1="223.88888888888889" y1="962" x2="223.88888888888889" y2="967" stroke="#334155" stroke-width="1"/>
@@ -139,18 +139,18 @@
 <text x="811.1111111111111" y="982" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">18</text>
 <line x1="895.0" y1="962" x2="895.0" y2="967" stroke="#334155" stroke-width="1"/>
 <text x="895.0" y="982" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">20</text>
-<polyline fill="none" stroke="#059669" stroke-width="3" points="140.00,949.10 223.89,947.36 307.78,945.40 391.67,941.44 475.56,935.75 559.44,927.29 643.33,914.05 727.22,882.10 811.11,841.85 895.00,787.90"/>
+<polyline fill="none" stroke="#059669" stroke-width="3" points="140.00,949.10 223.89,947.21 307.78,944.82 391.67,941.44 475.56,936.55 559.44,928.29 643.33,913.82 727.22,884.87 811.11,840.27 895.00,787.90"/>
 <circle cx="140.00" cy="949.10" r="4.5" fill="#059669" stroke="#ffffff" stroke-width="1"/>
-<circle cx="223.89" cy="947.36" r="4.5" fill="#059669" stroke="#ffffff" stroke-width="1"/>
-<circle cx="307.78" cy="945.40" r="4.5" fill="#059669" stroke="#ffffff" stroke-width="1"/>
+<circle cx="223.89" cy="947.21" r="4.5" fill="#059669" stroke="#ffffff" stroke-width="1"/>
+<circle cx="307.78" cy="944.82" r="4.5" fill="#059669" stroke="#ffffff" stroke-width="1"/>
 <circle cx="391.67" cy="941.44" r="4.5" fill="#059669" stroke="#ffffff" stroke-width="1"/>
-<circle cx="475.56" cy="935.75" r="4.5" fill="#059669" stroke="#ffffff" stroke-width="1"/>
-<circle cx="559.44" cy="927.29" r="4.5" fill="#059669" stroke="#ffffff" stroke-width="1"/>
-<circle cx="643.33" cy="914.05" r="4.5" fill="#059669" stroke="#ffffff" stroke-width="1"/>
-<circle cx="727.22" cy="882.10" r="4.5" fill="#059669" stroke="#ffffff" stroke-width="1"/>
-<circle cx="811.11" cy="841.85" r="4.5" fill="#059669" stroke="#ffffff" stroke-width="1"/>
+<circle cx="475.56" cy="936.55" r="4.5" fill="#059669" stroke="#ffffff" stroke-width="1"/>
+<circle cx="559.44" cy="928.29" r="4.5" fill="#059669" stroke="#ffffff" stroke-width="1"/>
+<circle cx="643.33" cy="913.82" r="4.5" fill="#059669" stroke="#ffffff" stroke-width="1"/>
+<circle cx="727.22" cy="884.87" r="4.5" fill="#059669" stroke="#ffffff" stroke-width="1"/>
+<circle cx="811.11" cy="840.27" r="4.5" fill="#059669" stroke="#ffffff" stroke-width="1"/>
 <circle cx="895.00" cy="787.90" r="4.5" fill="#059669" stroke="#ffffff" stroke-width="1"/>
 <rect x="760" y="754" width="10" height="10" fill="#059669"/>
-<text x="776" y="763" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#334155">Mean delay</text>
-  <text x="956" y="1142" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#64748b">Generated by csma_ca_sim.py</text>
+<text x="776" y="763" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#334155">Délai moyen</text>
+  <text x="956" y="1142" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#64748b">Généré par csma_ca_sim.py</text>
 </svg>

@@ -104,11 +104,6 @@ class TestStationState:
         station.nav_until = 2.5
         assert station.nav_until == 2.5
 
-    def test_station_queue_defaults(self):
-        """Vérifier qu'une file FIFO existe par station."""
-        station = StationState(station_id=2)
-        assert len(station.queue) == 0
-
 
 class TestSlotBoundary:
     """Tests pour le calcul de limites de slots."""
@@ -1150,8 +1145,8 @@ class TestIntegration:
         result = run_single_experiment(config)
         assert result.successful_packets > 0
 
-    def test_station_fifo_queue_processes_multiple_arrivals(self):
-        """Vérifier qu'une station sert plusieurs paquets au lieu d'en perdre."""
+    def test_station_ignores_extra_arrival_while_busy(self):
+        """Vérifier qu'une station ne garde qu'un seul paquet MAC à la fois."""
         config = SimulationConfig(
             station_count=1,
             arrival_rate=0.0,
@@ -1166,9 +1161,10 @@ class TestIntegration:
 
         result = simulator.run()
 
-        assert result.generated_packets == 2
-        assert result.successful_packets == 2
-        assert len(simulator.stations[0].queue) == 0
+        # La seconde arrivée est ignorée car le sujet impose un seul paquet MAC par station.
+        assert result.generated_packets == 1
+        assert result.successful_packets == 1
+        assert simulator.stations[0].packet is None
 
 
 if __name__ == "__main__":

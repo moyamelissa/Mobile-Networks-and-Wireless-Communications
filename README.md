@@ -3,7 +3,6 @@
 [![Tests](https://github.com/moyamelissa/Mobile-Networks-and-Wireless-Communications/actions/workflows/tests.yml/badge.svg)](https://github.com/moyamelissa/Mobile-Networks-and-Wireless-Communications/actions)
 [![Coverage](https://img.shields.io/badge/coverage-94%25-green)]()
 [![Python](https://img.shields.io/badge/python-3.8%2B-blue)]()
-[![License](https://img.shields.io/badge/license-MIT-green)]()
 
 
 ## Présentation
@@ -16,6 +15,7 @@ Le programme modélise plusieurs stations partageant un canal et permet d’anal
 - le délai moyen
 
 Un mode optionnel RTS/CTS est disponible pour comparaison.
+Conformément à l’énoncé, chaque station MAC ne traite qu’un seul paquet à la fois : une nouvelle arrivée n’est planifiée qu’après la réussite ou l’abandon du paquet courant.
 
 ---
 
@@ -69,15 +69,8 @@ python -m pytest test_csma_ca_sim.py
 csma_ca_sim.py         # Simulateur principal
 test_csma_ca_sim.py    # Tests unitaires
 Graphiques/            # Graphiques SVG générés
-RAPPORT.md             # Rapport académique
 README.md              # Documentation rapide
 ```
-
----
-
-## Licence
-
-MIT — Utilisation libre pour un usage académique ou commercial.
 
 ---
 
