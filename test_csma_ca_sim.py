@@ -1216,5 +1216,128 @@ class TestIntegration:
         assert simulator.stations[0].packet is None
 
 
+class TestCoverageGaps:
+    """Tests ciblant les branches défensives et cas limites non atteints par les autres classes."""
+
+    def test_dataclass_compat_slots_removed_when_unsupported(self):
+        """Vérifier que dataclass_compat retire 'slots' quand non supporté (branche Python < 3.10)."""
+        import csma_ca_sim
+        original = csma_ca_sim._DATACLASS_SUPPORTS_SLOTS
+        try:
+            csma_ca_sim._DATACLASS_SUPPORTS_SLOTS = False
+            decorator = csma_ca_sim.dataclass_compat(slots=True, eq=True)
+            # Le décorateur doit fonctionner sans 'slots' sur Python < 3.10
+            @decorator
+            class _Tmp:
+                x: int = 0
+            assert _Tmp().x == 0
+        finally:
+            csma_ca_sim._DATACLASS_SUPPORTS_SLOTS = original
+
+    def test_unknown_event_type_raises_runtime_error(self):
+        """Vérifier que le moteur lève RuntimeError pour un type d'événement inconnu."""
+        import heapq
+        config = SimulationConfig(station_count=2, arrival_rate=0.0, simulation_time=1.0)
+        sim = CSMACASimulator(config)
+        # Injecter un événement de type inconnu directement dans la file de priorité
+        heapq.heappush(sim.event_queue, (0.5, 0, 999, -1, 0))
+        with pytest.raises(RuntimeError, match="Unknown event type"):
+            sim.run()
+
+    def test_prime_station_for_contention_with_no_packet(self):
+        """Vérifier le garde défensif : ne rien faire si la station n'a pas de paquet."""
+        config = SimulationConfig(station_count=2, arrival_rate=0.0, simulation_time=1.0)
+        sim = CSMACASimulator(config)
+        assert sim.stations[0].packet is None
+        # Appel direct — la station n'a pas de paquet, doit retourner sans modifier les contenders
+        sim._prime_station_for_contention(0, 0.0)
+        assert 0 not in sim.contenders
+
+    def test_start_transmission_empty_list(self):
+        """Vérifier le garde défensif de _start_transmission avec liste vide."""
+        config = SimulationConfig(station_count=2, arrival_rate=0.0, simulation_time=1.0)
+        sim = CSMACASimulator(config)
+        sim._start_transmission(0.0, [])
+        assert sim.current_transmission is None
+
+    def test_start_rts_empty_list(self):
+        """Vérifier le garde défensif de _start_rts avec liste vide."""
+        config = SimulationConfig(station_count=2, arrival_rate=0.0, simulation_time=1.0, rtscts=True)
+        sim = CSMACASimulator(config)
+        sim._start_rts(0.0, [])
+        assert sim.current_transmission is None
+
+    def test_handle_slot_tick_when_canal_busy(self):
+        """Vérifier que _handle_slot_tick retourne immédiatement si le canal est occupé."""
+        config = SimulationConfig(station_count=2, arrival_rate=0.0, simulation_time=1.0)
+        sim = CSMACASimulator(config)
+        sim.current_transmission = {0}  # Simuler un canal occupé
+        sim._handle_slot_tick(0.0)  # Doit retourner sans modifier l'état (ligne 444)
+        assert sim.current_transmission == {0}
+
+    def test_handle_rts_end_no_current_transmission(self):
+        """Vérifier le garde défensif de _handle_rts_end quand aucune transmission n'est en cours."""
+        config = SimulationConfig(station_count=2, arrival_rate=0.0, simulation_time=1.0, rtscts=True)
+        sim = CSMACASimulator(config)
+        assert sim.current_transmission is None
+        sim._handle_rts_end(0.0)  # Doit retourner sans erreur (ligne 486)
+        assert sim.current_transmission is None
+
+    def test_rtscts_kmax_exceeded_drops_packet(self):
+        """Vérifier que K_max dépassé lors d'une collision RTS abandonne le paquet (lignes 501-506)."""
+        config = SimulationConfig(
+            station_count=8,
+            arrival_rate=100.0,
+            simulation_time=2.0,
+            rtscts=True,
+            kmax=1,   # Très bas : dès le 2ème échec RTS le paquet est abandonné
+            wmin=3,   # Petite fenêtre pour causer des collisions RTS fréquentes
+            seed=42,
+        )
+        result = run_single_experiment(config)
+        # Avec kmax=1 et forte contention RTS, des paquets doivent être abandonnés
+        assert result.dropped_packets > 0
+
+    def test_handle_data_end_no_current_transmission(self):
+        """Vérifier le garde défensif de _handle_data_end quand aucune transmission n'est en cours."""
+        config = SimulationConfig(station_count=2, arrival_rate=0.0, simulation_time=1.0)
+        sim = CSMACASimulator(config)
+        assert sim.current_transmission is None
+        sim._handle_data_end(0.0)  # Doit retourner sans erreur (ligne 544)
+        assert sim.current_transmission is None
+
+    def test_sweep_wmin_invalid_step(self):
+        """Vérifier l'erreur avec step <= 0 pour sweep_wmin."""
+        base_config = SimulationConfig()
+        with pytest.raises(ValueError):
+            sweep_wmin(base_config, start=15, stop=31, step=0, runs=1)
+
+    def test_sweep_wmin_invalid_runs(self):
+        """Vérifier l'erreur avec runs <= 0 pour sweep_wmin."""
+        base_config = SimulationConfig()
+        with pytest.raises(ValueError):
+            sweep_wmin(base_config, start=15, stop=31, step=8, runs=0)
+
+    def test_main_sweep_kmax(self, capsys, tmp_path):
+        """Tester main avec sweep K_max (lignes 1095-1105)."""
+        output = tmp_path / "kmax_test.svg"
+        with patch.object(sys, "argv", [
+            "csma_ca_sim.py",
+            "--sweep-kmax", "1", "3", "1",
+            "--stations", "4",
+            "--runs", "1",
+            "--simulation-time", "0.1",
+            "--output", str(output),
+        ]):
+            try:
+                main()
+            except SystemExit:
+                pass
+
+        captured = capsys.readouterr()
+        assert "Kmax sweep" in captured.out
+        assert output.exists()
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v", "--tb=short"])

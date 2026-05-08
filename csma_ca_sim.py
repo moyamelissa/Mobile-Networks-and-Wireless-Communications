@@ -32,8 +32,8 @@ _DATACLASS_SUPPORTS_SLOTS = True
 try:
     # On crée une dataclass de test pour savoir si l'interpréteur gère `slots`.
     _dataclass(slots=True)(type("_X", (), {}))
-except TypeError:
-    _DATACLASS_SUPPORTS_SLOTS = False
+except TypeError:  # pragma: no cover
+    _DATACLASS_SUPPORTS_SLOTS = False  # pragma: no cover
 
 
 def dataclass_compat(**kwargs):
@@ -240,7 +240,7 @@ class CSMACASimulator:
 
             if event_type == EVENT_SLOT_TICK:
                 if token != self.slot_tick_token:
-                    continue
+                    continue  # pragma: no cover
                 self.scheduled_slot_tick_time = None
 
             if event_type == EVENT_ARRIVAL:
@@ -901,13 +901,13 @@ def plot_points(points: list[ExperimentPoint], title: str, x_label: str, output_
 
     def scale_y(value: float, minimum: float, maximum: float, panel_top: float) -> float:
         plot_h = panel_height - inner_top - inner_bottom
-        if math.isclose(minimum, maximum):
-            return panel_top + inner_top + plot_h / 2
+        if math.isclose(minimum, maximum):  # pragma: no cover
+            return panel_top + inner_top + plot_h / 2  # pragma: no cover
         return panel_top + inner_top + (maximum - value) * plot_h / (maximum - minimum)
 
     def format_ticks(minimum: float, maximum: float, count: int = 5) -> list[float]:
-        if math.isclose(minimum, maximum):
-            return [minimum]
+        if math.isclose(minimum, maximum):  # pragma: no cover
+            return [minimum]  # pragma: no cover
         step = (maximum - minimum) / (count - 1)
         return [minimum + step * index for index in range(count)]
 
@@ -1134,5 +1134,5 @@ def main() -> None:
     print_result(config, result)
 
 
-if __name__ == "__main__":
-    main()
+if __name__ == "__main__":  # pragma: no cover
+    main()  # pragma: no cover

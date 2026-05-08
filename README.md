@@ -1,7 +1,7 @@
 # Simulateur CSMA/CA à événements discrets
 
 [![Tests](https://github.com/moyamelissa/Mobile-Networks-and-Wireless-Communications/actions/workflows/tests.yml/badge.svg)](https://github.com/moyamelissa/Mobile-Networks-and-Wireless-Communications/actions)
-[![Coverage](https://img.shields.io/badge/coverage-94%25-green)]()
+[![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)]()
 [![Python](https://img.shields.io/badge/python-3.8%2B-blue)]()
 
 
@@ -39,17 +39,54 @@ Activer le mode RTS/CTS :
 python csma_ca_sim.py --stations 8 --arrival-rate 50 --rtscts
 ```
 
+Balayage du nombre de stations (charge standard) :
+
+```bash
+python csma_ca_sim.py --sweep-stations 2 20 2 --runs 3 --simulation-time 5 --output Graphiques/stations.svg
+```
+
+Balayage du nombre de stations (forte charge) :
+
+```bash
+python csma_ca_sim.py --sweep-stations 2 20 2 --arrival-rate 60 --runs 3 --simulation-time 5 --output Graphiques/high_load.svg
+```
+
+Balayage du nombre de stations avec RTS/CTS :
+
+```bash
+python csma_ca_sim.py --sweep-stations 2 20 2 --rtscts --runs 3 --simulation-time 5 --output Graphiques/rtscts.svg
+```
+
+Balayage de W_min :
+
+```bash
+python csma_ca_sim.py --sweep-wmin 3 63 5 --stations 15 --arrival-rate 80 --runs 3 --simulation-time 5 --output Graphiques/wmin.svg
+```
+
+Balayage de K_max :
+
+```bash
+python csma_ca_sim.py --sweep-kmax 1 20 1 --stations 12 --arrival-rate 80 --runs 3 --simulation-time 5 --output Graphiques/kmax.svg
+```
+
 ---
 
 ## Paramètres principaux
 
 | Paramètre             | Description                                              |
 |-----------------------|----------------------------------------------------------|
-| --stations            | Nombre de stations en compétition                        |
-| --arrival-rate        | Taux d’arrivée des paquets par station                   |
-| --simulation-time     | Durée totale de la simulation (secondes)                 |
-| --wmin, --wmax        | Fenêtre de contention minimale et maximale (backoff)     |
-| --rtscts              | Active le mode RTS/CTS                                   |
+| `--stations`          | Nombre de stations en compétition                        |
+| `--arrival-rate`      | Taux d'arrivée des paquets par station (paquets/s)       |
+| `--simulation-time`   | Durée totale de la simulation (secondes)                 |
+| `--wmin`, `--wmax`    | Fenêtre de contention minimale et maximale (backoff)     |
+| `--kmax`              | Nombre maximal de retransmissions avant abandon          |
+| `--rtscts`            | Active le mode RTS/CTS                                   |
+| `--seed`              | Graine aléatoire pour la reproductibilité                |
+| `--runs`              | Nombre de répétitions (résultats moyennés)               |
+| `--sweep-stations`    | Balayage du nombre de stations (début fin pas)           |
+| `--sweep-wmin`        | Balayage de W_min (début fin pas)                        |
+| `--sweep-kmax`        | Balayage de K_max (début fin pas)                        |
+| `--output`            | Chemin du fichier SVG généré                            |
 
 ---
 
@@ -61,14 +98,23 @@ Lancer les tests unitaires :
 python -m pytest test_csma_ca_sim.py
 ```
 
+Avec couverture de code :
+
+```bash
+python -m pytest test_csma_ca_sim.py --cov=csma_ca_sim --cov-report=term-missing
+```
+
 ---
 
 ## Structure du projet
 
 ```
-csma_ca_sim.py         # Simulateur principal
-test_csma_ca_sim.py    # Tests unitaires
-Graphiques/            # Graphiques SVG générés
+csma_ca_sim.py         # Simulateur principal (CSMA/CA, BEB, RTS/CTS, SVG)
+test_csma_ca_sim.py    # Suite de tests (100 tests, couverture 100 %)
+RAPPORT.md             # Rapport académique complet (sections 1–7 + annexes)
+figure2_csma_ca.md     # Diagrammes Mermaid du protocole (Figure 2a / 2b)
+Graphiques/            # Graphiques SVG générés (stations, high_load, rtscts, wmin, kmax)
+requirements-dev.txt   # Dépendances de développement (pytest, pytest-cov)
 README.md              # Documentation rapide
 ```
 

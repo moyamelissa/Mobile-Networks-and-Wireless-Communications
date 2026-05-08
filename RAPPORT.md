@@ -39,7 +39,18 @@ Le présent rapport est organisé comme suit. La section 2 présente la méthodo
 
 Le développement du simulateur s'appuie sur une approche progressive visant à modéliser de manière fidèle le fonctionnement du protocole CSMA/CA tout en conservant une structure simple et modulable. La méthodologie adoptée repose sur la décomposition du système en plusieurs étapes de conception clairement définies, comme illustré à la Figure 1.
 
-> *Figure 1 — Étapes de conception du simulateur CSMA/CA (à insérer ici)*
+> *Figure 1 — Étapes de conception du simulateur CSMA/CA*
+
+```mermaid
+flowchart LR
+    A(["① Choix du modèle\nà événements discrets"]):::step
+    B(["② Modèle de station\n(état MAC)"]):::step
+    C(["③ Protocole CSMA/CA\n+ BEB + RTS/CTS"]):::step
+    D(["④ Plan d'expériences\n(balayage paramétrique)"]):::step
+    E(["⑤ Analyse des métriques\n(débit · délai · collision)"]):::step
+    A --> B --> C --> D --> E
+    classDef step fill:#aec6e8,stroke:#2c5f8a,color:#0d1f33,font-weight:bold,rx:12
+```
 
 Dans un premier temps, le choix d'un modèle à événements discrets a été retenu afin de représenter l'évolution du système dans le temps. Cette approche permet de simuler efficacement les interactions entre les différentes stations en ne traitant que les événements significatifs, tels que les arrivées de paquets, les tentatives de transmission, les mises à jour de backoff et les fins de transmission. Concrètement, ces événements sont structurés sous forme d'actions discrètes qui permettent de découper le temps en unités pertinentes, notamment le *slot time*, le DIFS et le SIFS du protocole.
 
@@ -115,9 +126,9 @@ En mode RTS/CTS (activé par l'option `--rtscts`), la station ne transmet pas di
 - **Collision sur le RTS** : même règle BEB que pour une collision de données.
 - **RTS réussi** : le point d'accès répond par un **CTS** après $T_{\text{SIFS}}$. La durée totale réservée est :
 
-$$t_{\text{fin données}} = t_{\text{RTS\_end}} + T_{\text{SIFS}} + T_{\text{CTS}} + T_{\text{SIFS}} + T_{\text{data}}$$
+$$t_{\text{fin}} = t_{\text{RTS}} + T_{\text{SIFS}} + T_{\text{CTS}} + T_{\text{SIFS}} + T_{\text{data}}$$
 
-Toutes les autres stations reçoivent le CTS et positionnent leur **NAV** (*Network Allocation Vector*) à $t_{\text{fin données}}$ : elles s'interdisent toute décrémentation de backoff jusqu'à cette échéance, ce qui protège l'échange de données contre les interférences.
+Toutes les autres stations reçoivent le CTS et positionnent leur **NAV** (*Network Allocation Vector*) à $t_{\text{fin}}$ : elles s'interdisent toute décrémentation de backoff jusqu'à cette échéance, ce qui protège l'échange de données contre les interférences.
 
 ### 3.6 Hypothèses simplificatrices
 
@@ -164,7 +175,85 @@ L'écoute du canal est modélisée de manière abstraite : l'état des compteurs
 
 À chaque *slot tick*, le compteur de backoff de chaque station contendante est décrémenté d'une unité. Lorsqu'une station atteint un compteur nul, elle tente de transmettre son paquet. Une **collision logique** se produit lorsque plusieurs stations atteignent simultanément un compteur nul lors du même slot. Dans ce cas, les stations concernées déclenchent une nouvelle phase de backoff selon la règle du BEB : $W \leftarrow \min(2W + 1, W_{\max})$. Ce mécanisme adaptatif stabilise le système même sous forte charge.
 
-> *Figure 2 — Fonctionnement du protocole CSMA/CA avec algorithme de backoff (à insérer ici)*
+> *Figure 2a — Protocole CSMA/CA : flux décisionnel principal (mode de base, sans RTS/CTS)*
+
+```mermaid
+flowchart TD
+    A([Arrivée d'un paquet]):::terminal
+    B["Initialiser\nW ← W_min,  K ← 0\nb ← U[0, W]"]:::action
+    C{"Canal libre ?\n(aucune transmission\nen cours)"}:::decision
+    D["Attendre\n(canal occupé)"]:::action
+    E["Décrémenter\nb ← b − 1"]:::action
+    F{"b = 0 ?"}:::decision
+    G["Transmission\ndu paquet\n(durée T_data)"]:::action
+    H{"Collision ?\n(plusieurs stations\nà b = 0 simultané)"}:::decision
+    I([Transmission réussie\nW ← W_min,  K ← 0]):::success
+    J["K ← K + 1"]:::action
+    K{"K > K_max ?"}:::decision
+    L([Paquet abandonné\n— perdu —\nW ← W_min,  K ← 0]):::failure
+    M["Augmenter la fenêtre\nW ← min(2W + 1, W_max)\nb ← U[0, W]"]:::action
+    N["Attendre DIFS\navant reprise\nde la contention"]:::wait
+
+    A --> B
+    B --> C
+    C -- NON --> D
+    D --> C
+    C -- OUI --> E
+    E --> F
+    F -- NON --> C
+    F -- OUI --> G
+    G --> H
+    H -- NON --> I
+    H -- OUI --> J
+    J --> K
+    K -- OUI --> L
+    K -- NON --> M
+    M --> N
+    N --> C
+
+    classDef terminal  fill:#a8d5a2,stroke:#3a7d44,color:#1a3a1a,font-weight:bold,rx:30
+    classDef action    fill:#aec6e8,stroke:#2c5f8a,color:#0d1f33
+    classDef decision  fill:#f7c59f,stroke:#b85c00,color:#3b1a00,font-style:italic
+    classDef success   fill:#a8d5a2,stroke:#3a7d44,color:#1a3a1a,font-weight:bold,rx:30
+    classDef failure   fill:#f4a7a7,stroke:#8b0000,color:#3b0000,font-weight:bold,rx:30
+    classDef wait      fill:#e8d5f0,stroke:#6a3d8a,color:#2d1040
+```
+
+> *Figure 2b — Extension RTS/CTS : flux de réservation du canal et mécanisme NAV*
+
+```mermaid
+flowchart TD
+    A([b = 0 — prêt à émettre]):::terminal
+    B["Envoyer RTS\n(durée T_RTS)"]:::action
+    C{"Collision RTS ?\n(plusieurs RTS simultanés)"}:::decision
+    D["K ← K + 1"]:::action
+    E{"K > K_max ?"}:::decision
+    F([Paquet abandonné]):::failure
+    G["W ← min(2W+1, W_max)\nb ← U[0, W]\nAttendre DIFS"]:::action
+    H["Recevoir CTS\n(durée T_SIFS + T_CTS)"]:::action
+    I["Autres stations :\nNAV ← t_fin\n(blocage médium)"]:::wait
+    J["Transmission données\n(durée T_SIFS + T_data)"]:::action
+    K([Transmission réussie\nW ← W_min,  K ← 0]):::success
+
+    A --> B
+    B --> C
+    C -- OUI --> D
+    D --> E
+    E -- OUI --> F
+    E -- NON --> G
+    G --> A
+    C -- NON --> H
+    H --> I
+    I --> J
+    J --> K
+
+    classDef terminal  fill:#a8d5a2,stroke:#3a7d44,color:#1a3a1a,font-weight:bold,rx:30
+    classDef action    fill:#aec6e8,stroke:#2c5f8a,color:#0d1f33
+    classDef decision  fill:#f7c59f,stroke:#b85c00,color:#3b1a00,font-style:italic
+    classDef success   fill:#a8d5a2,stroke:#3a7d44,color:#1a3a1a,font-weight:bold,rx:30
+    classDef failure   fill:#f4a7a7,stroke:#8b0000,color:#3b0000,font-weight:bold,rx:30
+    classDef wait      fill:#e8d5f0,stroke:#6a3d8a,color:#2d1040
+```
 
 La figure ci-dessus illustre le flux décisionnel principal du protocole : sélection du backoff b dans [0, W] à l'arrivée du paquet (avec W = W_min initialement), décrémentation slot par slot tant que le canal est libre, tentative de transmission quand b = 0, puis bifurcation selon qu'une collision est détectée ou non. Par souci de lisibilité, la figure présente une version simplifiée ; le comportement complet implémenté dans le code comporte trois éléments supplémentaires :
 
@@ -226,9 +315,9 @@ Afin d'évaluer les performances du simulateur, plusieurs séries d'expériences
 
 La Figure 3 présente les résultats obtenus en faisant varier le nombre de stations de 2 à 20, avec un taux d'arrivée standard.
 
-![Figure 3 — Performances du protocole CSMA/CA en fonction du nombre de stations (cas standard)](Graphiques/stations.svg)
-
 > *Figure 3 — Performances du protocole CSMA/CA en fonction du nombre de stations (cas standard)*
+
+![Figure 3 — Performances du protocole CSMA/CA en fonction du nombre de stations (cas standard)](Graphiques/stations.svg)
 
 On observe que le débit augmente de manière quasi linéaire avec le nombre de stations, atteignant environ 4,9 Mbps pour 20 stations. Cette évolution s'explique par l'augmentation progressive de la charge globale offerte au réseau. Dans ce régime de charge modérée, le protocole CSMA/CA gère efficacement la contention grâce au mécanisme de backoff et à l'espacement entre les transmissions.
 
@@ -238,9 +327,9 @@ Le délai moyen reste faible et n'augmente que légèrement, passant d'environ 1
 
 Une seconde série d'expériences a été réalisée avec un taux d'arrivée de paquets plus élevé (`--arrival-rate 60`). Les résultats sont présentés à la Figure 4.
 
-![Figure 4 — Performances du protocole CSMA/CA en situation de forte charge](Graphiques/high_load.svg)
-
 > *Figure 4 — Performances du protocole CSMA/CA en situation de forte charge*
+
+![Figure 4 — Performances du protocole CSMA/CA en situation de forte charge](Graphiques/high_load.svg)
 
 Dans ce scénario, le débit tend à atteindre un plateau à partir d'un certain nombre de stations, se stabilisant autour de 9,5 Mbps, ce qui traduit une saturation du canal. Le délai moyen de transmission augmente fortement, atteignant plus de 11 ms pour 20 stations. Ce phénomène est directement lié à l'algorithme de backoff exponentiel binaire : à chaque collision, la fenêtre de contention est doublée selon la règle
 
@@ -256,9 +345,9 @@ En revanche, le délai moyen est élevé car le compteur de backoff moyen vaut $
 
 Une comparaison avec l'extension RTS/CTS a été effectuée afin d'évaluer l'impact de ce mécanisme sur les performances du système. Les résultats sont illustrés à la Figure 5.
 
-![Figure 5 — Performances du protocole avec mécanisme RTS/CTS](Graphiques/rtscts.svg)
-
 > *Figure 5 — Performances du protocole CSMA/CA avec mécanisme RTS/CTS*
+
+![Figure 5 — Performances du protocole avec mécanisme RTS/CTS](Graphiques/rtscts.svg)
 
 L'introduction du mécanisme RTS/CTS modifie le fonctionnement du protocole en ajoutant une phase de réservation du canal. Le vecteur d'allocation réseau (NAV) permet d'éviter certaines collisions en bloquant temporairement l'accès au canal pour les autres stations une fois le RTS accepté.
 
@@ -280,9 +369,9 @@ Ainsi, dans un environnement simplifié sans terminal caché, l'utilisation de R
 
 Cette série d'expériences évalue l'influence de la fenêtre de contention minimale W_min sur les performances du système. Le nombre de stations est fixé à 15, le taux d'arrivée à 80 paquets/s/station (charge élevée), et W_min est fait varier de 3 à 63 par pas de 5. Trois répétitions sont moyennées pour chaque point.
 
-![Figure 6 — Performances du protocole CSMA/CA en fonction de W_min (15 stations, charge élevée)](Graphiques/wmin.svg)
-
 > *Figure 6 — Impact de la fenêtre de contention minimale W_min sur le débit, le taux de collision et le délai moyen (15 stations, taux d'arrivée = 80 paquets/s)*
+
+![Figure 6 — Performances du protocole CSMA/CA en fonction de W_min (15 stations, charge élevée)](Graphiques/wmin.svg)
 
 Les résultats révèlent un compromis net lié au choix de W_min :
 
@@ -298,9 +387,9 @@ Ce résultat illustre directement la logique derrière le choix de W_min = 15 da
 
 Cette expérience évalue l'influence du paramètre K_max sur les performances du système. Le nombre de stations est fixé à 12, le taux d'arrivée à 80 paquets/s/station (charge élevée), et K_max est fait varier de 1 à 20 par pas de 1. Trois répétitions sont moyennées pour chaque point.
 
-![Figure 7 — Performances du protocole CSMA/CA en fonction de K_max (12 stations, charge élevée)](Graphiques/kmax.svg)
-
 > *Figure 7 — Impact du nombre maximal de tentatives K_max sur le débit, le taux de collision et le délai moyen (12 stations, taux d’arrivée = 80 paquets/s)*
+
+![Figure 7 — Performances du protocole CSMA/CA en fonction de K_max (12 stations, charge élevée)](Graphiques/kmax.svg)
 
 K_max définit le nombre maximal d'échecs tolérés avant qu'un paquet soit **abandonné**. Il gouverne un compromis fondamental entre perte de paquets et délai moyen.
 
