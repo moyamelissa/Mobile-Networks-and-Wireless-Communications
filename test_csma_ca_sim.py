@@ -1024,8 +1024,9 @@ class TestIntegration:
             seed=7777
         )
         result = run_single_experiment(config)
-        # S'attendre à de nombreuses collisions
-        assert result.collision_rate >= 0 or result.dropped_packets > 0
+        # Avec 12 stations, fenêtre wmin=3 et charge élevée, des collisions doivent réellement
+        # se produire et être comptabilisées (vérifie que collision_rate > 0, pas juste >= 0).
+        assert result.collision_rate > 0 or result.dropped_packets > 0
 
     def test_multiple_drops_with_low_kmax(self):
         """Tester avec Kmax très bas pour forcer des drops."""
@@ -1338,6 +1339,65 @@ class TestCoverageGaps:
         assert "Kmax sweep" in captured.out
         assert output.exists()
 
+    def test_data_collision_counted_in_basic_mode(self):
+        """Vérifie que les collisions de données sont comptabilisées en mode de base (sans RTS/CTS).
 
-if __name__ == "__main__":
+        Ce test cible le correctif du bug où collided_packets n'était pas incrémenté
+        dans _handle_data_end, rendant collision_rate toujours nul en mode standard.
+        """
+        config = SimulationConfig(
+            station_count=20,
+            arrival_rate=500.0,
+            simulation_time=0.05,
+            wmin=1,        # Fenêtre minimale = 1 : quasi-certitude de collision au premier slot
+            rtscts=False,  # Mode de base seulement
+            seed=1234,
+        )
+        result = run_single_experiment(config)
+        assert result.collided_packets > 0, (
+            "Des collisions de données doivent être comptabilisées lorsque plusieurs stations "
+            "atteignent b=0 simultanément en mode de base."
+        )
+        assert result.collision_rate > 0.0, (
+            "collision_rate doit être > 0 quand collided_packets > 0."
+        )
+
+    def test_sweep_returns_stds(self):
+        """Vérifie que sweep_stations, sweep_wmin et sweep_kmax calculent les écart-types."""
+        base = SimulationConfig(
+            station_count=4,
+            arrival_rate=30.0,
+            simulation_time=0.3,
+            seed=42,
+        )
+        for pts in [
+            sweep_stations(base, start=2, stop=4, step=2, runs=3),
+            sweep_wmin(base, start=7, stop=15, step=8, runs=3),
+            sweep_kmax(base, start=3, stop=6, step=3, runs=3),
+        ]:
+            for pt in pts:
+                assert pt.throughput_bits_std >= 0.0
+                assert pt.collision_rate_std >= 0.0
+                assert pt.mean_delay_std >= 0.0
+
+    def test_wmin_optimal_zone_above_standard(self):
+        """Vérifie que l'optimum de W_min se situe au-dessus de la valeur standard (15).
+
+        Le standard IEEE 802.11b choisit W_min=15 comme compromis conservateur,
+        mais l'optimum simulé à haute charge se situe autour de W_min≈23-33.
+        """
+        base = SimulationConfig(
+            station_count=15,
+            arrival_rate=80.0,
+            simulation_time=1.0,
+            seed=42,
+        )
+        pts = sweep_wmin(base, start=3, stop=63, step=10, runs=2)
+        # Trouver le point avec le délai minimal
+        best = min(pts, key=lambda p: p.mean_delay_s)
+        # L'optimum doit être strictement au-dessus de la valeur standard 15
+        assert best.x_value > 15, (
+            f"L'optimum W_min={best.x_value} devrait être > 15 (valeur standard). "
+            "Si W_min=15 est optimal, l'analyse du rapport est incorrecte."
+        )
     pytest.main([__file__, "-v", "--tb=short"])

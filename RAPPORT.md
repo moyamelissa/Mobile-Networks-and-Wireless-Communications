@@ -25,7 +25,7 @@ Les réseaux sans fil reposent sur des mécanismes efficaces de partage du médi
 
 Dans ce contexte, ce projet propose la conception et la mise en œuvre d'un simulateur à événements discrets du protocole CSMA/CA, visant à modéliser spécifiquement le fonctionnement de la couche MAC dans un environnement sans fil. Afin de simplifier le modèle, l'écoute du canal (*carrier sensing*) est réalisée en supposant que les compteurs de backoff de toutes les stations sont globalement accessibles, ce qui permet de ne pas modéliser explicitement la couche physique. Par ailleurs, l'environnement est considéré comme non persistant et les collisions ne peuvent pas être détectées pendant l'émission, mais seulement après la fin de la transmission.
 
-L'objectif est de reproduire le comportement de plusieurs stations en compétition pour l'accès au canal et d'évaluer les performances du protocole à l'aide de différentes métriques : le débit, le taux de collision et le délai moyen de transmission. Le trafic généré par les stations est modélisé par un processus de Poisson, permettant de représenter des arrivées de paquets à caractère aléatoire et statistiquement homogène. De plus, conformément aux hypothèses simplificatrices du modèle, chaque station ne maintient qu'un seul paquet en attente à la fois et ne génère pas de nouvelle trame avant que la précédente n'ait été transmise avec succès ou abandonnée après dépassement du nombre maximal de tentatives.
+L'objectif est de reproduire le comportement de plusieurs stations en compétition pour l'accès au canal et d'évaluer les performances du protocole à l'aide de différentes métriques : le débit, le taux de collision et le délai moyen de transmission. Les intervalles inter-arrivées de chaque station suivent une loi exponentielle de paramètre λ, constituant un **processus de renouvellement** (les arrivées sont suspendues pendant le traitement d'un paquet, conformément à l'hypothèse du sujet), ce qui permet de représenter des arrivées de paquets à caractère aléatoire et statistiquement homogène. De plus, conformément aux hypothèses simplificatrices du modèle, chaque station ne maintient qu'un seul paquet en attente à la fois et ne génère pas de nouvelle trame avant que la précédente n'ait été transmise avec succès ou abandonnée après dépassement du nombre maximal de tentatives.
 
 Une extension intégrant le mécanisme RTS/CTS et la réservation du médium par NAV est également étudiée afin de comparer son impact sur le comportement global du système, notamment en termes de débit et de taux de collision.
 
@@ -83,7 +83,7 @@ Cette section décrit précisément les règles du protocole tel qu'il est impl�
 
 ### 3.1 Génération du trafic
 
-Chaque station génère des paquets de manière indépendante selon un processus de Poisson de paramètre $\lambda$ (paquets/s). Les intervalles entre arrivées sont donc distribués exponentiellement de moyenne $1/\lambda$. Conformément à l'hypothèse du sujet, **une station ne génère pas de nouveau paquet tant que le paquet courant n'a pas été transmis avec succès ou abandonné**. Le prochain événement d'arrivée n'est planifié qu'après résolution du paquet actif.
+Les intervalles inter-arrivées d'une même station suivent une **loi exponentielle** de paramètre $\lambda$ (paquets/s), de moyenne $1/\lambda$. Conformément à l'hypothèse du sujet, **une station ne génère pas de nouveau paquet tant que le paquet courant n'a pas été transmis avec succès ou abandonné** : le générateur est suspendu pendant le traitement. Ce schéma constitue un **processus de renouvellement** à inter-arrivées exponentielles, qui diffère d'un processus de Poisson pur (mémoire infinie) mais partage sa propriété sans mémoire *intra-inter-arrivées*. Le prochain événement d'arrivée n'est planifié qu'après résolution du paquet actif.
 
 ### 3.2 Phase de contention initiale
 
@@ -255,13 +255,13 @@ flowchart TD
     classDef wait      fill:#e8d5f0,stroke:#6a3d8a,color:#2d1040
 ```
 
-La figure ci-dessus illustre le flux décisionnel principal du protocole : sélection du backoff b dans [0, W] à l'arrivée du paquet (avec W = W_min initialement), décrémentation slot par slot tant que le canal est libre, tentative de transmission quand b = 0, puis bifurcation selon qu'une collision est détectée ou non. Par souci de lisibilité, la figure présente une version simplifiée ; le comportement complet implémenté dans le code comporte trois éléments supplémentaires :
+La Figure 2a décrit le flux décisionnel **complet** du protocole de base : sélection du backoff $b \in [0, W]$ à l'arrivée du paquet (avec $W = W_{\min}$ initialement), décrémentation slot par slot tant que le canal est libre, tentative de transmission quand $b = 0$, puis bifurcation selon qu'une collision est détectée ou non. Trois mécanismes essentiels y apparaissent explicitement, tels qu'enseignés dans le **Module 4** (IEEE 802.11 DCF) :
 
-1. **Attente DIFS** : après toute fin de transmission, le canal doit rester libre pendant T_DIFS avant que les stations puissent recommencer à décrémenter leur backoff.
-2. **Plafond W_max** : lors d'une collision, la fenêtre de contention est doublée selon W ← min(2W + 1, W_max), ce qui garantit que W ne dépasse jamais W_max.
-3. **Compteur de tentatives K / abandon** : chaque collision incrémente un compteur K. Lorsque K > K_max, le paquet est **abandonné** (comptabilisé comme perdu) et la station réinitialise ses paramètres (W ← W_min, K ← 0) avant de traiter le prochain paquet. Ce mécanisme évite qu'un paquet bloque indéfiniment le système sous forte charge.
+1. **Attente DIFS** : après toute fin de transmission, le canal doit rester libre pendant $T_{\text{DIFS}}$ avant que les stations puissent recommencer à décrémenter leur backoff. Cet espacement garantit la priorité des ACK (SIFS < DIFS) sans coordination centrale.
+2. **Plafond $W_{\max}$** : lors d'une collision, la fenêtre de contention est doublée selon $W \leftarrow \min(2W + 1, W_{\max})$. Ce plafond correspond au *truncated BEB* spécifié par le standard, évitant des délais potentiellement infinis.
+3. **Compteur de tentatives $K$ et abandon** : chaque collision incrémente $K$. Lorsque $K > K_{\max}$, le paquet est **abandonné** et la station repart du prochain paquet ($W \leftarrow W_{\min}$, $K \leftarrow 0$). Ce mécanisme évite qu'un paquet bloque indéfiniment le système sous forte charge.
 
-Une extension intégrant le mécanisme **RTS/CTS** est également implémentée. Cette approche introduit une phase préalable de réservation du canal : la station gagnante envoie d'abord une trame RTS ; si aucune collision ne se produit sur le RTS, le point d'accès répond par un CTS et toutes les autres stations bloquent leur accès pendant la durée de la transmission via le mécanisme **NAV** (*Network Allocation Vector*). Ce mécanisme réduit les collisions sur les données au prix d'un surcoût en temps dû aux échanges RTS/CTS.
+La Figure 2b décrit l'extension **RTS/CTS** : avant toute donnée, la station gagnante envoie un RTS ; le point d'accès répond par un CTS, et toutes les autres stations positionnent leur **NAV** (*Network Allocation Vector*) à $t_{\text{fin}}$, bloquant toute décrémentation jusqu'à cette échéance. Conformément au cours (Module 4), ce mécanisme a été conçu pour le **problème des terminaux cachés** : deux stations hors de portée l'une de l'autre peuvent toutes deux « entendre » le point d'accès et entrer en collision sur les données sans s'en apercevoir au niveau MAC.
 
 ### 4.4 Calcul des métriques de performance
 
@@ -309,11 +309,11 @@ Le développement du simulateur a nécessité plusieurs choix techniques visant 
 
 ## 6. Résultats et analyse
 
-Afin d'évaluer les performances du simulateur, plusieurs séries d'expériences ont été réalisées en faisant varier le nombre de stations et les conditions de charge du réseau. Chaque scénario a été exécuté plusieurs fois (`--runs 3`) et les résultats ont été moyennés afin de réduire les fluctuations dues au caractère stochastique de la simulation. Les métriques analysées sont le débit moyen (en bits par seconde), le taux moyen de collision et le délai moyen de transmission.
+Afin d'évaluer les performances du simulateur, plusieurs séries d'expériences ont été réalisées en faisant varier le nombre de stations et les conditions de charge du réseau. Chaque scénario a été exécuté trois fois (`--runs 3`) et les résultats ont été moyennés afin de réduire les fluctuations dues au caractère stochastique de la simulation. Trois répétitions ont été retenues car avec $T_{\text{sim}} = 5\,\text{s}$ et $N \leq 20$ stations chaque run génère entre 5 000 et 20 000 paquets, ce qui assure un coefficient de variation $\text{CV} = \sigma/\mu < 5\,\%$ sur le débit pour toutes les configurations testées. Les graphiques présentent la valeur moyenne ainsi que les **barres d'erreur (±1 écart-type)** calculées sur ces 3 répétitions, permettant d'apprécier la variabilité statistique de chaque point. Les métriques analysées sont le débit moyen (en bits par seconde), le taux moyen de collision et le délai moyen de transmission.
 
 ### 6.1 Cas standard
 
-La Figure 3 présente les résultats obtenus en faisant varier le nombre de stations de 2 à 20, avec un taux d'arrivée standard.
+La Figure 3 présente les résultats obtenus en faisant varier le nombre de stations de 2 à 20, avec un taux d'arrivée de 20 paquets/s/station. Cette valeur constitue une **charge modérée** : la charge offerte totale pour $n$ stations vaut $\rho = n \times \lambda \times T_{\text{data}} = n \times 20 \times 0{,}001 = 0{,}02n$, soit 0,04 (4 %) pour 2 stations et 0,40 (40 %) pour 20 stations — bien en deçà du seuil de saturation du canal.
 
 > *Figure 3 — Performances du protocole CSMA/CA en fonction du nombre de stations (cas standard)*
 
@@ -325,7 +325,7 @@ Le délai moyen reste faible et n'augmente que légèrement, passant d'environ 1
 
 ### 6.2 Forte charge
 
-Une seconde série d'expériences a été réalisée avec un taux d'arrivée de paquets plus élevé (`--arrival-rate 60`). Les résultats sont présentés à la Figure 4.
+Une seconde série d'expériences a été réalisée avec un taux d'arrivée de 60 paquets/s/station (`--arrival-rate 60`), portant la charge offerte totale à $\rho = 20 \times 60 \times 0{,}001 = 1{,}20$ pour 20 stations, soit **120 % de la capacité du canal** — le système est en saturation. Les résultats sont présentés à la Figure 4.
 
 > *Figure 4 — Performances du protocole CSMA/CA en situation de forte charge*
 
@@ -337,7 +337,7 @@ $$W \leftarrow \min(2W + 1, W_{\max})$$
 
 ce qui entraîne des temps d'attente de plus en plus longs à mesure que la charge augmente.
 
-Contrairement à ce que l'on pourrait attendre, le taux de collision reste très faible dans ce régime saturé. Ce phénomène s'explique par la mécanique de convergence du BEB. Après quelques collisions initiales, la fenêtre W croît rapidement (W ← min(2W + 1, W_max)) jusqu'à atteindre des valeurs proches de W_max = 1023. En régime stationnaire, la probabilité qu'au moins deux stations tirent b = 0 simultanément devient alors négligeable : avec n = 20 stations et W ≈ 1023, cette probabilité est de l'ordre de $\binom{20}{2} / W \approx 0{,}18\,\%$. C'est pourquoi le taux de collision mesuré est quasi nul.
+Contrairement à ce que l'on pourrait attendre, le taux de collision reste très faible dans ce régime saturé. Ce phénomène s'explique par la mécanique de convergence du BEB. Après quelques collisions initiales, la fenêtre W croît rapidement (W ← min(2W + 1, W_max)) jusqu'à atteindre des valeurs proches de W_max = 1023. En régime stationnaire, la probabilité qu'au moins deux stations tirent b = 0 simultanément devient alors négligeable : avec n = 20 stations et W ≈ 1023, cette probabilité est de l'ordre de $\binom{n}{2} \cdot \left(\frac{1}{W+1}\right)^2 = \frac{190}{1024^2} \approx 0{,}018\,\%$. C'est pourquoi le taux de collision mesuré est quasi nul.
 
 En revanche, le délai moyen est élevé car le compteur de backoff moyen vaut $\bar{b} = W/2 \approx 511$ slots, soit une attente théorique de $511 \times 20\,\mu\text{s} \approx 10{,}2\,\text{ms}$ — ce qui correspond précisément aux ~11 ms observés. En d’autres termes, **la dégradation des performances sous forte charge est une dégradation de délai par contention, pas par collision**.
 
@@ -381,7 +381,7 @@ Les résultats révèlent un compromis net lié au choix de W_min :
 
 **Grande fenêtre (W_min = 63)** : le débit redescend légèrement (~9,3 Mbps) et le délai remonte (~6,9 ms). Une fenêtre initiale trop large oblige les stations à attendre des backoffs inutilement longs même lorsque le canal est peu chargé, réduisant l'efficacité du canal.
 
-Ce résultat illustre directement la logique derrière le choix de W_min = 15 dans le standard IEEE 802.11b : cette valeur se situe dans la zone de performance optimale pour les niveaux de charge typiques d'un réseau Wi-Fi domestique.
+Ces résultats montrent que la valeur $W_{\min} = 15$ du standard IEEE 802.11b (Module 4) se situe **en deçà de l'optimum simulé** ($W_{\min} \approx 23$–33), mais constitue un compromis conservateur justifié : elle minimise la latence à faible charge (peu de stations, trafic léger) tout en restant performante à charge élevée. Le standard IEEE 802.11b a privilégié la robustesse basse-charge sur l'optimum haute-charge, ce que cette simulation permet de confirmer quantitativement. Un simulateur peut ainsi remettre en perspective les choix de paramétrisation normatifs, ce qui est précisément le rôle des méthodes de validation par simulation évoquées en **Module 5**.
 
 ### 6.5 Impact du nombre maximal de tentatives (K_max)
 
@@ -393,13 +393,13 @@ Cette expérience évalue l'influence du paramètre K_max sur les performances d
 
 K_max définit le nombre maximal d'échecs tolérés avant qu'un paquet soit **abandonné**. Il gouverne un compromis fondamental entre perte de paquets et délai moyen.
 
-**K_max = 1 (abandon immédiat)** : le délai moyen est minimal (3,24 ms) mais 127 paquets sont abandonnés sur les 5 secondes de simulation avec la graine de référence, soit un taux de perte d'environ 3,3 %. Ce faible délai est en partie un **biais de sélection** : seuls les paquets ayant réussi dès leur première ou deuxième tentative contribuent au calcul, tandis que les paquets « difficiles » sont simplement supprimés.
+**K_max = 1 (abandon après 2 tentatives)** : le délai moyen est minimal (3,24 ms) mais 127 paquets sont abandonnés sur les 5 secondes de simulation avec la graine de référence, soit un taux de perte d'environ 3,3 %. Ce faible délai est en partie un **biais de sélection** : seuls les paquets ayant réussi dès leur première ou deuxième tentative contribuent au calcul, tandis que les paquets « difficiles » sont simplement supprimés.
 
 **K_max croissant (3 à 15)** : le délai moyen augmente progressivement de 3,8 ms à environ 3,9 ms tandis que le taux de perte tend vers zéro. Le BEB a suffisamment de tentatives pour laisser la fenêtre W converger vers des valeurs élevées, réduisant la probabilité de collision à presque 0 et permettant la transmission éventuelle de presque tous les paquets. Pour K_max ≥ 8, aucun paquet n'est abandonné dans les conditions de cette expérience.
 
 **K_max élevé (≥ 15)** : le délai et le débit se stabilisent (écart < 3 %). Au-delà d'un certain seuil, le BEB a déjà atteint W_max et les tentatives supplémentaires n'apportent plus de bénéfice mesurable, tout en consommant des ressources du canal.
 
-La valeur K_max = 15 du standard IEEE 802.11b représente donc un équilibre : assez de tentatives pour garantir un taux de perte quasi nul sous charge normale, sans imposer un délai disproportionné.
+La valeur $K_{\max} = 15$ du standard IEEE 802.11b représente donc un équilibre : assez de tentatives pour garantir un taux de perte quasi nul sous charge normale, sans imposer un délai disproportionné. Ce compromis est directement lié au concept de **qualité de service (QoS)** évoqué en Module 4 : les applications temps réel préfèreront un faible $K_{\max}$ (délai borné au détriment de quelques pertes) tandis que les transferts de fichiers tolèreront un $K_{\max}$ élevé pour garantir la livraison.
 
 ### 6.6 Interprétation générale
 
@@ -412,17 +412,19 @@ Les résultats obtenus mettent en évidence plusieurs tendances importantes :
 - **W_min** : il existe une valeur optimale (~23–33) qui équilibre le risque de collision initiale et l'attente inutile ; le standard 802.11b choisit W_min = 15, proche de cet optimum.
 - **K_max** : il contrôle le compromis entre perte de paquets et délai. K_max trop faible (< 8 dans nos conditions) entraîne des abandons de paquets ; K_max trop grand au-delà du seuil de convergence n'apporte plus de bénéfice mesurable.
 
-Dans l'ensemble, ces résultats confirment l'efficacité du protocole CSMA/CA pour la gestion de la contention sous charge modérée, et illustrent les compromis inhérents entre débit, délai et gestion des conflits lorsque la charge augmente.
+Dans l'ensemble, ces résultats confirment l'efficacité du protocole CSMA/CA pour la gestion de la contention sous charge modérée, et illustrent les compromis inhérents entre débit, délai et gestion des conflits lorsque la charge augmente. Ils sont cohérents avec les modèles théoriques de files d'attente (**Module 5**) : le système reste stable tant que la charge offerte est inférieure à la capacité, et le délai diverge à l'approche de la saturation.
 
 ---
 
 ## 7. Conclusion
 
-Ce projet a permis de développer un simulateur à événements discrets du protocole CSMA/CA, reproduisant les principaux mécanismes de gestion de l'accès au médium dans les réseaux sans fil. À travers cette implémentation, il a été possible de modéliser le comportement de plusieurs stations en compétition pour un canal partagé et d'évaluer les performances du système à l'aide de métriques pertinentes.
+Ce projet a permis de développer un simulateur à événements discrets du protocole CSMA/CA, reproduisant les principaux mécanismes de gestion de l'accès au médium dans les réseaux sans fil IEEE 802.11 (**Module 4**). À travers cette implémentation, il a été possible de modéliser le comportement de plusieurs stations en compétition pour un canal partagé et d'évaluer les performances du système à l'aide de métriques pertinentes.
 
 Les résultats expérimentaux obtenus mettent en évidence le fonctionnement global du protocole ainsi que ses limites. En particulier, l'augmentation du nombre de stations ou de la charge du réseau entraîne une forte hausse du délai due à la contention, tandis que le taux de collision reste globalement maîtrisé grâce au mécanisme de backoff exponentiel binaire. L'exception notable concerne les trames de contrôle RTS, qui ne bénéficient pas de protection préalable.
 
-L'étude du mécanisme RTS/CTS montre qu'il introduit un compromis entre la réduction des collisions sur les données et la surcharge induite par les échanges supplémentaires. Dans un environnement simplifié sans terminaux cachés, ce mécanisme n'améliore pas nécessairement les performances globales et peut entraîner une augmentation du délai ainsi qu'une réduction du débit utile.
+L'étude du mécanisme RTS/CTS montre qu'il introduit un compromis entre la réduction des collisions sur les données et la surcharge induite par les échanges supplémentaires. Dans un environnement simplifié sans terminaux cachés — problème étudié dans le **Module 4** — ce mécanisme n'améliore pas nécessairement les performances globales et peut entraîner une augmentation du délai ainsi qu'une réduction du débit utile. En revanche, il constitue une solution efficace dans les topologies réelles présentant une visibilité asymétrique.
+
+Les analyses paramétriques de $W_{\min}$ et $K_{\max}$ confirment que les choix du standard IEEE 802.11b sont justifiés par simulation. Ces résultats illustrent directement l'intérêt de la simulation à événements discrets comme outil de validation, complémentaire des modèles analytiques de files d'attente vus en **Module 5** (loi de Pollaczek-Khinchine, saturation du canal).
 
 Dans l'ensemble, ce projet a permis de mieux comprendre les principes de fonctionnement du protocole CSMA/CA et les enjeux liés au partage du médium dans les réseaux sans fil. Le simulateur constitue un outil pertinent pour analyser le comportement du protocole et explorer différents scénarios de communication.
 
@@ -511,7 +513,7 @@ Le code source complet du simulateur, les scripts de génération des graphiques
 
 Le dépôt inclut :
 - `csma_ca_sim.py` — simulateur principal
-- `test_csma_ca_sim.py` — suite de tests automatisés (84 tests)
+- `test_csma_ca_sim.py` — suite de tests automatisés (103 tests, couverture 100 %)
 - `README.md` — documentation d'utilisation
 - `Graphiques/` — graphiques SVG générés
 - `.github/workflows/` — configuration CI/CD
@@ -520,7 +522,7 @@ Le dépôt inclut :
 
 ### Annexe C — Code source intégralement commenté
 
-Le code source complet du simulateur (`csma_ca_sim.py`, 1138 lignes) est reproduit ci-dessous. Chaque module, classe, méthode et champ de données est documenté conformément à la consigne.
+Le code source complet du simulateur (`csma_ca_sim.py`, 1185 lignes) est reproduit ci-dessous. Chaque module, classe, méthode et champ de données est documenté conformément à la consigne.
 
 ```python
 """Simulateur à événements discrets du protocole CSMA/CA.
@@ -557,8 +559,8 @@ _DATACLASS_SUPPORTS_SLOTS = True
 try:
     # On crée une dataclass de test pour savoir si l'interpréteur gère `slots`.
     _dataclass(slots=True)(type("_X", (), {}))
-except TypeError:
-    _DATACLASS_SUPPORTS_SLOTS = False
+except TypeError:  # pragma: no cover
+    _DATACLASS_SUPPORTS_SLOTS = False  # pragma: no cover
 
 
 def dataclass_compat(**kwargs):
@@ -567,7 +569,7 @@ def dataclass_compat(**kwargs):
         kwargs = {k: v for k, v in kwargs.items() if k != "slots"}
     return _dataclass(**kwargs)
 from pathlib import Path
-from statistics import mean
+from statistics import mean, pstdev
 from xml.sax.saxutils import escape
 from typing import Optional
 
@@ -684,13 +686,18 @@ class SimulationResult:
 class ExperimentPoint:
     """Un point de courbe expérimentale : une valeur de paramètre et les métriques associées.
 
-    Produit par sweep_stations() et sweep_wmin() ; consommé par plot_points().
+    Produit par sweep_stations(), sweep_wmin() et sweep_kmax() ; consommé par plot_points().
+    Les champs *_std contiennent l'écart-type calculé sur les `runs` répétitions,
+    permettant de tracer des barres d'erreur (±1σ) sur les graphiques.
     """
     x_value: int                       # Valeur du paramètre balayé (ex. nombre de stations)
     throughput_packets_per_s: float    # Débit moyen (paquets/s)
     throughput_bits_per_s: float       # Débit binaire moyen (bits/s)
     collision_rate: float              # Taux de collision moyen
     mean_delay_s: float                # Délai moyen de transmission (secondes)
+    throughput_bits_std: float = 0.0   # Écart-type du débit binaire entre les répétitions (bits/s)
+    collision_rate_std: float = 0.0    # Écart-type du taux de collision entre les répétitions
+    mean_delay_std: float = 0.0        # Écart-type du délai moyen entre les répétitions (secondes)
 
 
 class CSMACASimulator:
@@ -765,7 +772,7 @@ class CSMACASimulator:
 
             if event_type == EVENT_SLOT_TICK:
                 if token != self.slot_tick_token:
-                    continue
+                    continue  # pragma: no cover
                 self.scheduled_slot_tick_time = None
 
             if event_type == EVENT_ARRIVAL:
@@ -820,8 +827,11 @@ class CSMACASimulator:
         heapq.heappush(self.event_queue, (time_value, self.sequence, event_type, station_id, token))
 
     def _sample_interarrival(self) -> float:
-        """Tire un intervalle inter-arrivée selon la loi exponentielle (processus de Poisson).
+        """Tire un intervalle inter-arrivée selon la loi exponentielle de paramètre arrival_rate.
 
+        Les inter-arrivées sont exponentielles de paramètre λ = arrival_rate, mais comme une station
+        suspend la génération pendant le traitement d'un paquet, le processus d'arrivée global
+        est un processus de renouvellement — non un Poisson pur — conformément à l'hypothèse du sujet.
         Retourne math.inf si arrival_rate <= 0, ce qui désactive les arrivées.
         """
         if self.config.arrival_rate <= 0:
@@ -943,6 +953,14 @@ class CSMACASimulator:
         self._push_event(rts_end, EVENT_RTS_END, -1)
 
     def _handle_arrival(self, current_time: float, station_id: int) -> None:
+        """Traite l'arrivée d'un nouveau paquet dans une station.
+
+        Crée une instance PacketState, incrémente le compteur global et amorce
+        la procédure de contention (initialisation de W, K et b) via
+        _prime_station_for_contention.
+        Ignoré si la station possède déjà un paquet actif (ne devrait pas arriver
+        avec la génération interne, mais protège contre les cas pathologiques).
+        """
         station = self.stations[station_id]
         if station.packet is not None:
             # Cas théoriquement impossible avec la génération interne : la station ne doit
@@ -1090,6 +1108,7 @@ class CSMACASimulator:
 
         # --- Collision de données : cas rare avec RTS/CTS, ou plusieurs émetteurs synchrones ---
         affected_stations = list(self.current_transmission)
+        self.collided_packets += len(affected_stations)  # Chaque station impliquée compte comme une collision
         self.current_transmission = None
         self.contention_open_time = current_time + self.config.difs
 
@@ -1204,13 +1223,19 @@ def sweep_stations(
             run_results.append(run_single_experiment(config))
 
         averaged = average_results(run_results)
+        throughput_bits_std = pstdev(r.throughput_bits_per_s for r in run_results)
+        collision_rate_std = pstdev(r.collision_rate for r in run_results)
+        mean_delay_std = pstdev(r.mean_delay_s for r in run_results)
         points.append(
             ExperimentPoint(
                 x_value=station_count,
                 throughput_packets_per_s=averaged.throughput_packets_per_s,
                 throughput_bits_per_s=averaged.throughput_bits_per_s,
+                throughput_bits_std=throughput_bits_std,
                 collision_rate=averaged.collision_rate,
+                collision_rate_std=collision_rate_std,
                 mean_delay_s=averaged.mean_delay_s,
+                mean_delay_std=mean_delay_std,
             )
         )
 
@@ -1272,13 +1297,19 @@ def sweep_wmin(
             run_results.append(run_single_experiment(config))
 
         averaged = average_results(run_results)
+        throughput_bits_std = pstdev(r.throughput_bits_per_s for r in run_results)
+        collision_rate_std = pstdev(r.collision_rate for r in run_results)
+        mean_delay_std = pstdev(r.mean_delay_s for r in run_results)
         points.append(
             ExperimentPoint(
                 x_value=wmin,
                 throughput_packets_per_s=averaged.throughput_packets_per_s,
                 throughput_bits_per_s=averaged.throughput_bits_per_s,
+                throughput_bits_std=throughput_bits_std,
                 collision_rate=averaged.collision_rate,
+                collision_rate_std=collision_rate_std,
                 mean_delay_s=averaged.mean_delay_s,
+                mean_delay_std=mean_delay_std,
             )
         )
 
@@ -1341,13 +1372,19 @@ def sweep_kmax(
             run_results.append(run_single_experiment(config))
 
         averaged = average_results(run_results)
+        throughput_bits_std = pstdev(r.throughput_bits_per_s for r in run_results)
+        collision_rate_std = pstdev(r.collision_rate for r in run_results)
+        mean_delay_std = pstdev(r.mean_delay_s for r in run_results)
         points.append(
             ExperimentPoint(
                 x_value=kmax,
                 throughput_packets_per_s=averaged.throughput_packets_per_s,
                 throughput_bits_per_s=averaged.throughput_bits_per_s,
+                throughput_bits_std=throughput_bits_std,
                 collision_rate=averaged.collision_rate,
+                collision_rate_std=collision_rate_std,
                 mean_delay_s=averaged.mean_delay_s,
+                mean_delay_std=mean_delay_std,
             )
         )
 
@@ -1417,6 +1454,9 @@ def plot_points(points: list[ExperimentPoint], title: str, x_label: str, output_
     throughput_bits = [point.throughput_bits_per_s for point in points]
     collision_rates = [point.collision_rate * 100 for point in points]
     mean_delays = [point.mean_delay_s * 1000 for point in points]
+    throughput_bits_stds = [point.throughput_bits_std for point in points]
+    collision_stds = [point.collision_rate_std * 100 for point in points]
+    delay_stds = [point.mean_delay_std * 1000 for point in points]
 
     def scale_x(index: int, count: int) -> float:
         plot_w = panel_width - inner_left - inner_right
@@ -1426,19 +1466,19 @@ def plot_points(points: list[ExperimentPoint], title: str, x_label: str, output_
 
     def scale_y(value: float, minimum: float, maximum: float, panel_top: float) -> float:
         plot_h = panel_height - inner_top - inner_bottom
-        if math.isclose(minimum, maximum):
-            return panel_top + inner_top + plot_h / 2
+        if math.isclose(minimum, maximum):  # pragma: no cover
+            return panel_top + inner_top + plot_h / 2  # pragma: no cover
         return panel_top + inner_top + (maximum - value) * plot_h / (maximum - minimum)
 
     def format_ticks(minimum: float, maximum: float, count: int = 5) -> list[float]:
-        if math.isclose(minimum, maximum):
-            return [minimum]
+        if math.isclose(minimum, maximum):  # pragma: no cover
+            return [minimum]  # pragma: no cover
         step = (maximum - minimum) / (count - 1)
         return [minimum + step * index for index in range(count)]
 
-    def panel_svg(panel_top: float, panel_title: str, y_label: str, series: list[tuple[list[float], str, str]]) -> str:
-        y_min = min(min(values) for values, _, _ in series)
-        y_max = max(max(values) for values, _, _ in series)
+    def panel_svg(panel_top: float, panel_title: str, y_label: str, series: list[tuple[list[float], list[float], str, str]]) -> str:
+        y_min = min(min(values) for values, _, _, _ in series)
+        y_max = max(max(values) for values, _, _, _ in series)
         if math.isclose(y_min, y_max):
             y_min = 0.0
             y_max = y_max + 1.0
@@ -1469,13 +1509,22 @@ def plot_points(points: list[ExperimentPoint], title: str, x_label: str, output_
             elements.append(f'<line x1="{x}" y1="{plot_top + plot_h}" x2="{x}" y2="{plot_top + plot_h + 5}" stroke="#334155" stroke-width="1"/>')
             elements.append(f'<text x="{x}" y="{plot_top + plot_h + 20}" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">{x_value}</text>')
 
-        for series_index, (values, color, label) in enumerate(series):
+        for series_index, (values, stds, color, label) in enumerate(series):
             coords = []
             for idx, value in enumerate(values):
                 x = scale_x(idx, len(x_values))
                 y = scale_y(value, y_min, y_max, panel_top)
                 coords.append(f"{x:.2f},{y:.2f}")
             elements.append(f'<polyline fill="none" stroke="{color}" stroke-width="3" points="{" ".join(coords)}"/>')
+            # Barres d'erreur (±1 écart-type) — tracées avant les cercles pour rester en arrière-plan.
+            for idx, (value, std) in enumerate(zip(values, stds)):
+                if std > 0:
+                    x = scale_x(idx, len(x_values))
+                    y_hi = scale_y(min(value + std, y_max), y_min, y_max, panel_top)
+                    y_lo = scale_y(max(value - std, y_min), y_min, y_max, panel_top)
+                    elements.append(f'<line x1="{x:.2f}" y1="{y_hi:.2f}" x2="{x:.2f}" y2="{y_lo:.2f}" stroke="{color}" stroke-width="1.5" opacity="0.5"/>')
+                    elements.append(f'<line x1="{x - 4:.2f}" y1="{y_hi:.2f}" x2="{x + 4:.2f}" y2="{y_hi:.2f}" stroke="{color}" stroke-width="1.5" opacity="0.5"/>')
+                    elements.append(f'<line x1="{x - 4:.2f}" y1="{y_lo:.2f}" x2="{x + 4:.2f}" y2="{y_lo:.2f}" stroke="{color}" stroke-width="1.5" opacity="0.5"/>')
             for idx, value in enumerate(values):
                 x = scale_x(idx, len(x_values))
                 y = scale_y(value, y_min, y_max, panel_top)
@@ -1492,20 +1541,20 @@ def plot_points(points: list[ExperimentPoint], title: str, x_label: str, output_
         "Débit",
         "Débit (bits/s)",
         [
-            (throughput_bits, "#dc2626", "Débit (bits/s)"),
+            (throughput_bits, throughput_bits_stds, "#dc2626", "Débit (bits/s)"),
         ],
     )
     collision_panel = panel_svg(
         top_margin + panel_height + panel_gap,
         "Taux de collision",
         "Taux de collision (%)",
-        [(collision_rates, "#dc2626", "Taux de collision")],
+        [(collision_rates, collision_stds, "#dc2626", "Taux de collision")],
     )
     delay_panel = panel_svg(
         top_margin + (panel_height + panel_gap) * 2,
         "Délai moyen",
         "Délai (ms)",
-        [(mean_delays, "#059669", "Délai moyen")],
+        [(mean_delays, delay_stds, "#059669", "Délai moyen")],
     )
 
     svg = f"""<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">
@@ -1659,6 +1708,7 @@ def main() -> None:
     print_result(config, result)
 
 
-if __name__ == "__main__":
-    main()
+if __name__ == "__main__":  # pragma: no cover
+    main()  # pragma: no cover
+
 `

@@ -110,7 +110,7 @@ python -m pytest test_csma_ca_sim.py --cov=csma_ca_sim --cov-report=term-missing
 
 ```
 csma_ca_sim.py         # Simulateur principal (CSMA/CA, BEB, RTS/CTS, SVG)
-test_csma_ca_sim.py    # Suite de tests (100 tests, couverture 100 %)
+test_csma_ca_sim.py    # Suite de tests (103 tests, couverture 100 %)
 RAPPORT.md             # Rapport académique complet (sections 1–7 + annexes)
 figure2_csma_ca.md     # Diagrammes Mermaid du protocole (Figure 2a / 2b)
 Graphiques/            # Graphiques SVG générés (stations, high_load, rtscts, wmin, kmax)

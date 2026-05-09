@@ -42,7 +42,7 @@ def dataclass_compat(**kwargs):
         kwargs = {k: v for k, v in kwargs.items() if k != "slots"}
     return _dataclass(**kwargs)
 from pathlib import Path
-from statistics import mean
+from statistics import mean, pstdev
 from xml.sax.saxutils import escape
 from typing import Optional
 
@@ -90,7 +90,7 @@ class SimulationConfig:
     Les valeurs par défaut correspondent au standard IEEE 802.11b.
     """
     station_count: int = 8        # Nombre de stations en compétition pour le canal
-    arrival_rate: float = 20.0    # Taux d'arrivée Poisson par station (paquets/s)
+    arrival_rate: float = 20.0    # Taux d'arrivée par station (paquets/s) — processus de renouvellement
     simulation_time: float = 20.0 # Horizon de simulation (secondes)
     packet_bits: int = 12000      # Taille d'un paquet (bits) — 12 000 bits = 1 500 octets
     packet_duration: float = 0.001 # Durée de transmission d'un paquet (secondes)
@@ -159,13 +159,18 @@ class SimulationResult:
 class ExperimentPoint:
     """Un point de courbe expérimentale : une valeur de paramètre et les métriques associées.
 
-    Produit par sweep_stations() et sweep_wmin() ; consommé par plot_points().
+    Produit par sweep_stations(), sweep_wmin() et sweep_kmax() ; consommé par plot_points().
+    Les champs *_std contiennent l'écart-type calculé sur les `runs` répétitions,
+    permettant de tracer des barres d'erreur (±1σ) sur les graphiques.
     """
     x_value: int                       # Valeur du paramètre balayé (ex. nombre de stations)
     throughput_packets_per_s: float    # Débit moyen (paquets/s)
     throughput_bits_per_s: float       # Débit binaire moyen (bits/s)
     collision_rate: float              # Taux de collision moyen
     mean_delay_s: float                # Délai moyen de transmission (secondes)
+    throughput_bits_std: float = 0.0   # Écart-type du débit binaire entre les répétitions (bits/s)
+    collision_rate_std: float = 0.0    # Écart-type du taux de collision entre les répétitions
+    mean_delay_std: float = 0.0        # Écart-type du délai moyen entre les répétitions (secondes)
 
 
 class CSMACASimulator:
@@ -205,8 +210,6 @@ class CSMACASimulator:
         self.scheduled_slot_tick_time: Optional[float] = None
         # Jeton permettant d'invalider les événements slot_tick périmés sans les retirer de la file.
         self.slot_tick_token = 0
-        # Champ réservé pour une extension future (NAV global) — non utilisé dans la version courante.
-        self.nav_until: float = 0.0
 
         # Compteurs de métriques — cumulés au fil des événements, agrégés dans run().
         self.generated_packets = 0   # Paquets générés par les stations
@@ -295,8 +298,11 @@ class CSMACASimulator:
         heapq.heappush(self.event_queue, (time_value, self.sequence, event_type, station_id, token))
 
     def _sample_interarrival(self) -> float:
-        """Tire un intervalle inter-arrivée selon la loi exponentielle (processus de Poisson).
+        """Tire un intervalle inter-arrivée selon la loi exponentielle de paramètre arrival_rate.
 
+        Les inter-arrivées sont exponentielles de paramètre λ = arrival_rate, mais comme une station
+        suspend la génération pendant le traitement d'un paquet, le processus d'arrivée global
+        est un processus de renouvellement — non un Poisson pur — conformément à l'hypothèse du sujet.
         Retourne math.inf si arrival_rate <= 0, ce qui désactive les arrivées.
         """
         if self.config.arrival_rate <= 0:
@@ -418,6 +424,14 @@ class CSMACASimulator:
         self._push_event(rts_end, EVENT_RTS_END, -1)
 
     def _handle_arrival(self, current_time: float, station_id: int) -> None:
+        """Traite l'arrivée d'un nouveau paquet dans une station.
+
+        Crée une instance PacketState, incrémente le compteur global et amorce
+        la procédure de contention (initialisation de W, K et b) via
+        _prime_station_for_contention.
+        Ignoré si la station possède déjà un paquet actif (ne devrait pas arriver
+        avec la génération interne, mais protège contre les cas pathologiques).
+        """
         station = self.stations[station_id]
         if station.packet is not None:
             # Cas théoriquement impossible avec la génération interne : la station ne doit
@@ -565,6 +579,7 @@ class CSMACASimulator:
 
         # --- Collision de données : cas rare avec RTS/CTS, ou plusieurs émetteurs synchrones ---
         affected_stations = list(self.current_transmission)
+        self.collided_packets += len(affected_stations)  # Chaque station impliquée compte comme une collision
         self.current_transmission = None
         self.contention_open_time = current_time + self.config.difs
 
@@ -679,13 +694,19 @@ def sweep_stations(
             run_results.append(run_single_experiment(config))
 
         averaged = average_results(run_results)
+        throughput_bits_std = pstdev(r.throughput_bits_per_s for r in run_results)
+        collision_rate_std = pstdev(r.collision_rate for r in run_results)
+        mean_delay_std = pstdev(r.mean_delay_s for r in run_results)
         points.append(
             ExperimentPoint(
                 x_value=station_count,
                 throughput_packets_per_s=averaged.throughput_packets_per_s,
                 throughput_bits_per_s=averaged.throughput_bits_per_s,
+                throughput_bits_std=throughput_bits_std,
                 collision_rate=averaged.collision_rate,
+                collision_rate_std=collision_rate_std,
                 mean_delay_s=averaged.mean_delay_s,
+                mean_delay_std=mean_delay_std,
             )
         )
 
@@ -747,13 +768,19 @@ def sweep_wmin(
             run_results.append(run_single_experiment(config))
 
         averaged = average_results(run_results)
+        throughput_bits_std = pstdev(r.throughput_bits_per_s for r in run_results)
+        collision_rate_std = pstdev(r.collision_rate for r in run_results)
+        mean_delay_std = pstdev(r.mean_delay_s for r in run_results)
         points.append(
             ExperimentPoint(
                 x_value=wmin,
                 throughput_packets_per_s=averaged.throughput_packets_per_s,
                 throughput_bits_per_s=averaged.throughput_bits_per_s,
+                throughput_bits_std=throughput_bits_std,
                 collision_rate=averaged.collision_rate,
+                collision_rate_std=collision_rate_std,
                 mean_delay_s=averaged.mean_delay_s,
+                mean_delay_std=mean_delay_std,
             )
         )
 
@@ -816,13 +843,19 @@ def sweep_kmax(
             run_results.append(run_single_experiment(config))
 
         averaged = average_results(run_results)
+        throughput_bits_std = pstdev(r.throughput_bits_per_s for r in run_results)
+        collision_rate_std = pstdev(r.collision_rate for r in run_results)
+        mean_delay_std = pstdev(r.mean_delay_s for r in run_results)
         points.append(
             ExperimentPoint(
                 x_value=kmax,
                 throughput_packets_per_s=averaged.throughput_packets_per_s,
                 throughput_bits_per_s=averaged.throughput_bits_per_s,
+                throughput_bits_std=throughput_bits_std,
                 collision_rate=averaged.collision_rate,
+                collision_rate_std=collision_rate_std,
                 mean_delay_s=averaged.mean_delay_s,
+                mean_delay_std=mean_delay_std,
             )
         )
 
@@ -892,6 +925,9 @@ def plot_points(points: list[ExperimentPoint], title: str, x_label: str, output_
     throughput_bits = [point.throughput_bits_per_s for point in points]
     collision_rates = [point.collision_rate * 100 for point in points]
     mean_delays = [point.mean_delay_s * 1000 for point in points]
+    throughput_bits_stds = [point.throughput_bits_std for point in points]
+    collision_stds = [point.collision_rate_std * 100 for point in points]
+    delay_stds = [point.mean_delay_std * 1000 for point in points]
 
     def scale_x(index: int, count: int) -> float:
         plot_w = panel_width - inner_left - inner_right
@@ -911,9 +947,9 @@ def plot_points(points: list[ExperimentPoint], title: str, x_label: str, output_
         step = (maximum - minimum) / (count - 1)
         return [minimum + step * index for index in range(count)]
 
-    def panel_svg(panel_top: float, panel_title: str, y_label: str, series: list[tuple[list[float], str, str]]) -> str:
-        y_min = min(min(values) for values, _, _ in series)
-        y_max = max(max(values) for values, _, _ in series)
+    def panel_svg(panel_top: float, panel_title: str, y_label: str, series: list[tuple[list[float], list[float], str, str]]) -> str:
+        y_min = min(min(values) for values, _, _, _ in series)
+        y_max = max(max(values) for values, _, _, _ in series)
         if math.isclose(y_min, y_max):
             y_min = 0.0
             y_max = y_max + 1.0
@@ -944,13 +980,22 @@ def plot_points(points: list[ExperimentPoint], title: str, x_label: str, output_
             elements.append(f'<line x1="{x}" y1="{plot_top + plot_h}" x2="{x}" y2="{plot_top + plot_h + 5}" stroke="#334155" stroke-width="1"/>')
             elements.append(f'<text x="{x}" y="{plot_top + plot_h + 20}" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">{x_value}</text>')
 
-        for series_index, (values, color, label) in enumerate(series):
+        for series_index, (values, stds, color, label) in enumerate(series):
             coords = []
             for idx, value in enumerate(values):
                 x = scale_x(idx, len(x_values))
                 y = scale_y(value, y_min, y_max, panel_top)
                 coords.append(f"{x:.2f},{y:.2f}")
             elements.append(f'<polyline fill="none" stroke="{color}" stroke-width="3" points="{" ".join(coords)}"/>')
+            # Barres d'erreur (±1 écart-type) — tracées avant les cercles pour rester en arrière-plan.
+            for idx, (value, std) in enumerate(zip(values, stds)):
+                if std > 0:
+                    x = scale_x(idx, len(x_values))
+                    y_hi = scale_y(min(value + std, y_max), y_min, y_max, panel_top)
+                    y_lo = scale_y(max(value - std, y_min), y_min, y_max, panel_top)
+                    elements.append(f'<line x1="{x:.2f}" y1="{y_hi:.2f}" x2="{x:.2f}" y2="{y_lo:.2f}" stroke="{color}" stroke-width="1.5" opacity="0.5"/>')
+                    elements.append(f'<line x1="{x - 4:.2f}" y1="{y_hi:.2f}" x2="{x + 4:.2f}" y2="{y_hi:.2f}" stroke="{color}" stroke-width="1.5" opacity="0.5"/>')
+                    elements.append(f'<line x1="{x - 4:.2f}" y1="{y_lo:.2f}" x2="{x + 4:.2f}" y2="{y_lo:.2f}" stroke="{color}" stroke-width="1.5" opacity="0.5"/>')
             for idx, value in enumerate(values):
                 x = scale_x(idx, len(x_values))
                 y = scale_y(value, y_min, y_max, panel_top)
@@ -967,20 +1012,20 @@ def plot_points(points: list[ExperimentPoint], title: str, x_label: str, output_
         "Débit",
         "Débit (bits/s)",
         [
-            (throughput_bits, "#dc2626", "Débit (bits/s)"),
+            (throughput_bits, throughput_bits_stds, "#dc2626", "Débit (bits/s)"),
         ],
     )
     collision_panel = panel_svg(
         top_margin + panel_height + panel_gap,
         "Taux de collision",
         "Taux de collision (%)",
-        [(collision_rates, "#dc2626", "Taux de collision")],
+        [(collision_rates, collision_stds, "#dc2626", "Taux de collision")],
     )
     delay_panel = panel_svg(
         top_margin + (panel_height + panel_gap) * 2,
         "Délai moyen",
         "Délai (ms)",
-        [(mean_delays, "#059669", "Délai moyen")],
+        [(mean_delays, delay_stds, "#059669", "Délai moyen")],
     )
 
     svg = f"""<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">
@@ -1012,7 +1057,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     """
     parser = argparse.ArgumentParser(description="Simulateur à événements discrets du protocole CSMA/CA avec backoff exponentiel binaire")
     parser.add_argument("--stations", type=int, default=8, help="Number of stations")
-    parser.add_argument("--arrival-rate", type=float, default=20.0, help="Poisson arrival rate per station (packets/s)")
+    parser.add_argument("--arrival-rate", type=float, default=20.0, help="Arrival rate per station (packets/s) — renewal process, not pure Poisson")
     parser.add_argument("--simulation-time", type=float, default=20.0, help="Simulation horizon in seconds")
     parser.add_argument("--packet-bits", type=int, default=12000, help="Packet size in bits")
     parser.add_argument("--packet-duration", type=float, default=0.001, help="Packet transmission duration in seconds")
