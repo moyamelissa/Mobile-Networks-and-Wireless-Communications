@@ -19,6 +19,7 @@ Structure principale :
 from __future__ import annotations
 
 import argparse
+import csv
 import heapq
 import math
 import random
@@ -891,6 +892,88 @@ def print_result(config: SimulationConfig, result: SimulationResult) -> None:
     print(f"  Collided packets       : {result.collided_packets}")
 
 
+def save_csv(
+    points: list[ExperimentPoint] | None,
+    result: SimulationResult | None,
+    config: SimulationConfig | None,
+    csv_path: Path,
+) -> None:
+    """Sauvegarde les résultats bruts dans un fichier CSV.
+
+    Deux modes :
+    - sweep (points non vide) : une ligne par valeur du paramètre balayé,
+      avec les métriques moyennes et les écarts-types.
+    - simulation unique (result/config non nuls) : une seule ligne avec
+      tous les compteurs et métriques de SimulationResult.
+    """
+    csv_path.parent.mkdir(parents=True, exist_ok=True)
+    if points:
+        fieldnames = [
+            "x_value",
+            "throughput_packets_per_s",
+            "throughput_bits_per_s",
+            "throughput_bits_std",
+            "collision_rate",
+            "collision_rate_std",
+            "mean_delay_s",
+            "mean_delay_std",
+        ]
+        with csv_path.open("w", newline="", encoding="utf-8") as fh:
+            writer = csv.DictWriter(fh, fieldnames=fieldnames)
+            writer.writeheader()
+            for p in points:
+                writer.writerow({
+                    "x_value": p.x_value,
+                    "throughput_packets_per_s": p.throughput_packets_per_s,
+                    "throughput_bits_per_s": p.throughput_bits_per_s,
+                    "throughput_bits_std": p.throughput_bits_std,
+                    "collision_rate": p.collision_rate,
+                    "collision_rate_std": p.collision_rate_std,
+                    "mean_delay_s": p.mean_delay_s,
+                    "mean_delay_std": p.mean_delay_std,
+                })
+    elif result is not None and config is not None:
+        fieldnames = [
+            "station_count",
+            "arrival_rate",
+            "wmin",
+            "wmax",
+            "kmax",
+            "throughput_packets_per_s",
+            "throughput_bits_per_s",
+            "channel_utilization",
+            "offered_load_packets_per_s",
+            "collision_rate",
+            "mean_delay_s",
+            "generated_packets",
+            "successful_packets",
+            "dropped_packets",
+            "total_attempts",
+            "collided_packets",
+        ]
+        with csv_path.open("w", newline="", encoding="utf-8") as fh:
+            writer = csv.DictWriter(fh, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerow({
+                "station_count": config.station_count,
+                "arrival_rate": config.arrival_rate,
+                "wmin": config.wmin,
+                "wmax": config.wmax,
+                "kmax": config.kmax,
+                "throughput_packets_per_s": result.throughput_packets_per_s,
+                "throughput_bits_per_s": result.throughput_bits_per_s,
+                "channel_utilization": result.channel_utilization,
+                "offered_load_packets_per_s": result.offered_load_packets_per_s,
+                "collision_rate": result.collision_rate,
+                "mean_delay_s": result.mean_delay_s,
+                "generated_packets": result.generated_packets,
+                "successful_packets": result.successful_packets,
+                "dropped_packets": result.dropped_packets,
+                "total_attempts": result.total_attempts,
+                "collided_packets": result.collided_packets,
+            })
+
+
 def plot_points(points: list[ExperimentPoint], title: str, x_label: str, output_path: Path) -> None:
     """Génère un graphique SVG à trois panneaux (débit, taux de collision, délai moyen).
 
@@ -910,16 +993,23 @@ def plot_points(points: list[ExperimentPoint], title: str, x_label: str, output_
         raise ValueError("points must not be empty")
 
     width = 980
-    height = 1160
+    height = 1190
     panel_width = 880
-    panel_height = 270
+    panel_height = 280
     left = 50
-    top_margin = 80
-    panel_gap = 60
-    inner_left = 90
-    inner_right = 35
-    inner_top = 35
-    inner_bottom = 48
+    top_margin = 90
+    panel_gap = 55
+    inner_left = 95
+    inner_right = 30
+    inner_top = 55
+    inner_bottom = 52
+
+    # Blue/purple light-theme palette: (stroke, area-top-opacity, area-bot-opacity)
+    PALETTE = [
+        ("#6366f1", "0.14", "0.0"),   # indigo  — throughput
+        ("#a855f7", "0.12", "0.0"),   # purple  — collision
+        ("#0ea5e9", "0.11", "0.0"),   # sky     — delay
+    ]
 
     x_values = [point.x_value for point in points]
     throughput_bits = [point.throughput_bits_per_s for point in points]
@@ -947,101 +1037,249 @@ def plot_points(points: list[ExperimentPoint], title: str, x_label: str, output_
         step = (maximum - minimum) / (count - 1)
         return [minimum + step * index for index in range(count)]
 
-    def panel_svg(panel_top: float, panel_title: str, y_label: str, series: list[tuple[list[float], list[float], str, str]]) -> str:
+    def smooth_curve(coords: list[tuple[float, float]]) -> str:
+        """Catmull-Rom spline converted to cubic Bézier SVG path."""
+        if len(coords) < 2:
+            return f"M{coords[0][0]:.2f},{coords[0][1]:.2f}"
+        n = len(coords)
+        parts = [f"M{coords[0][0]:.2f},{coords[0][1]:.2f}"]
+        for i in range(n - 1):
+            p0 = coords[max(0, i - 1)]
+            p1 = coords[i]
+            p2 = coords[i + 1]
+            p3 = coords[min(n - 1, i + 2)]
+            cp1x = p1[0] + (p2[0] - p0[0]) / 6
+            cp1y = p1[1] + (p2[1] - p0[1]) / 6
+            cp2x = p2[0] - (p3[0] - p1[0]) / 6
+            cp2y = p2[1] - (p3[1] - p1[1]) / 6
+            parts.append(f"C{cp1x:.2f},{cp1y:.2f} {cp2x:.2f},{cp2y:.2f} {p2[0]:.2f},{p2[1]:.2f}")
+        return " ".join(parts)
+
+    # Defs are accumulated here; panel_svg appends per-series area gradients.
+    defs_parts: list[str] = [
+        '<linearGradient id="svgBg" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox">',
+        '  <stop offset="0%" stop-color="#ffffff"/>',
+        '  <stop offset="100%" stop-color="#f5f3ff"/>',
+        '</linearGradient>',
+        '<radialGradient id="topGlow" cx="50%" cy="0%" r="60%">',
+        '  <stop offset="0%" stop-color="#6366f1" stop-opacity="0.05"/>',
+        '  <stop offset="100%" stop-color="#6366f1" stop-opacity="0"/>',
+        '</radialGradient>',
+    ]
+
+    def panel_svg(panel_index: int, panel_top: float, panel_title: str, y_label: str,
+                  series: list[tuple[list[float], list[float], int, str]]) -> str:
+        """series items: (values, stds, palette_index, label)."""
         y_min = min(min(values) for values, _, _, _ in series)
         y_max = max(max(values) for values, _, _, _ in series)
         if math.isclose(y_min, y_max):
             y_min = 0.0
             y_max = y_max + 1.0
-        y_padding = (y_max - y_min) * 0.08 or 1.0
+        y_padding = (y_max - y_min) * 0.10 or 1.0
         y_min = max(0.0, y_min - y_padding)
         y_max = y_max + y_padding
-
-        elements: list[str] = []
-        elements.append(f'<rect x="{left}" y="{panel_top}" width="{panel_width}" height="{panel_height}" rx="18" fill="#fbfbfd" stroke="#d9dce3"/>')
-        elements.append(f'<text x="{left + 18}" y="{panel_top + 26}" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#1f2937">{escape(panel_title)}</text>')
-        elements.append(f'<text x="{left + 18}" y="{panel_top + 50}" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#4b5563">{escape(y_label)}</text>')
 
         plot_left = left + inner_left
         plot_top = panel_top + inner_top
         plot_w = panel_width - inner_left - inner_right
         plot_h = panel_height - inner_top - inner_bottom
+        plot_bottom = plot_top + plot_h
 
-        elements.append(f'<line x1="{plot_left}" y1="{plot_top + plot_h}" x2="{plot_left + plot_w}" y2="{plot_top + plot_h}" stroke="#334155" stroke-width="1.2"/>')
-        elements.append(f'<line x1="{plot_left}" y1="{plot_top}" x2="{plot_left}" y2="{plot_top + plot_h}" stroke="#334155" stroke-width="1.2"/>')
+        el: list[str] = []
 
+        # Card
+        el.append(
+            f'<rect x="{left}" y="{panel_top}" width="{panel_width}" height="{panel_height}"'
+            f' rx="14" fill="#ffffff" stroke="rgba(99,102,241,0.18)" stroke-width="1.2"'
+            f' filter="drop-shadow(0 2px 8px rgba(99,102,241,0.08))"/>'
+        )
+        # Accent top bar
+        el.append(
+            f'<rect x="{left + 24}" y="{panel_top}" width="48" height="3"'
+            f' rx="2" fill="rgba(99,102,241,0.55)"/>'
+        )
+        # Panel title
+        el.append(
+            f'<text x="{left + 20}" y="{panel_top + 32}"'
+            f' font-family="system-ui,\'Segoe UI\',Arial,sans-serif"'
+            f' font-size="15" font-weight="700" fill="#1e1b4b" letter-spacing="0.3">'
+            f'{escape(panel_title)}</text>'
+        )
+        # y-label (unit)
+        el.append(
+            f'<text x="{left + 20}" y="{panel_top + 50}"'
+            f' font-family="system-ui,\'Segoe UI\',Arial,sans-serif"'
+            f' font-size="10" fill="#6b7280">{escape(y_label)}</text>'
+        )
+
+        # Horizontal grid lines
         for tick_value in format_ticks(y_min, y_max):
             y = scale_y(tick_value, y_min, y_max, panel_top)
-            elements.append(f'<line x1="{plot_left - 5}" y1="{y}" x2="{plot_left}" y2="{y}" stroke="#334155" stroke-width="1"/>')
-            elements.append(f'<text x="{plot_left - 10}" y="{y + 4}" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">{tick_value:.2f}</text>')
+            el.append(
+                f'<line x1="{plot_left}" y1="{y:.2f}" x2="{plot_left + plot_w}" y2="{y:.2f}"'
+                f' stroke="rgba(99,102,241,0.08)" stroke-width="1" stroke-dasharray="4,4"/>'
+            )
 
+        # Axes
+        el.append(
+            f'<line x1="{plot_left}" y1="{plot_bottom}" x2="{plot_left + plot_w}" y2="{plot_bottom}"'
+            f' stroke="#d1d5db" stroke-width="1"/>'
+        )
+        el.append(
+            f'<line x1="{plot_left}" y1="{plot_top}" x2="{plot_left}" y2="{plot_bottom}"'
+            f' stroke="#d1d5db" stroke-width="1"/>'
+        )
+
+        # Y-axis labels
+        for tick_value in format_ticks(y_min, y_max):
+            y = scale_y(tick_value, y_min, y_max, panel_top)
+            el.append(
+                f'<text x="{plot_left - 8}" y="{y + 4:.2f}" text-anchor="end"'
+                f' font-family="system-ui,\'Segoe UI\',Arial,sans-serif"'
+                f' font-size="10" fill="#6b7280">{tick_value:.2f}</text>'
+            )
+
+        # X-axis labels
         for idx, x_value in enumerate(x_values):
             x = scale_x(idx, len(x_values))
-            elements.append(f'<line x1="{x}" y1="{plot_top + plot_h}" x2="{x}" y2="{plot_top + plot_h + 5}" stroke="#334155" stroke-width="1"/>')
-            elements.append(f'<text x="{x}" y="{plot_top + plot_h + 20}" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#475569">{x_value}</text>')
+            el.append(
+                f'<line x1="{x:.2f}" y1="{plot_bottom}" x2="{x:.2f}" y2="{plot_bottom + 4}"'
+                f' stroke="#d1d5db" stroke-width="1"/>'
+            )
+            el.append(
+                f'<text x="{x:.2f}" y="{plot_bottom + 18}" text-anchor="middle"'
+                f' font-family="system-ui,\'Segoe UI\',Arial,sans-serif"'
+                f' font-size="10" fill="#6b7280">{x_value}</text>'
+            )
 
-        for series_index, (values, stds, color, label) in enumerate(series):
-            coords = []
-            for idx, value in enumerate(values):
-                x = scale_x(idx, len(x_values))
-                y = scale_y(value, y_min, y_max, panel_top)
-                coords.append(f"{x:.2f},{y:.2f}")
-            elements.append(f'<polyline fill="none" stroke="{color}" stroke-width="3" points="{" ".join(coords)}"/>')
-            # Barres d'erreur (±1 écart-type) — tracées avant les cercles pour rester en arrière-plan.
+        # Per-series rendering
+        for si, (values, stds, ci, label) in enumerate(series):
+            stroke_color = PALETTE[ci][0]
+            area_op_top = PALETTE[ci][1]
+            area_op_bot = PALETTE[ci][2]
+
+            coords = [
+                (scale_x(idx, len(x_values)), scale_y(v, y_min, y_max, panel_top))
+                for idx, v in enumerate(values)
+            ]
+
+            # Register area gradient in defs
+            grad_id = f"areaGrad_p{panel_index}_s{si}"
+            defs_parts.append(
+                f'<linearGradient id="{grad_id}" x1="0" y1="{plot_top:.2f}" x2="0" y2="{plot_bottom:.2f}"'
+                f' gradientUnits="userSpaceOnUse">'
+            )
+            defs_parts.append(
+                f'  <stop offset="0%" stop-color="{stroke_color}" stop-opacity="{area_op_top}"/>'
+            )
+            defs_parts.append(
+                f'  <stop offset="100%" stop-color="{stroke_color}" stop-opacity="{area_op_bot}"/>'
+            )
+            defs_parts.append('</linearGradient>')
+
+            # Area fill
+            curve_d = smooth_curve(coords)
+            area_d = (
+                f"{curve_d}"
+                f" L{coords[-1][0]:.2f},{plot_bottom:.2f}"
+                f" L{coords[0][0]:.2f},{plot_bottom:.2f} Z"
+            )
+            el.append(f'<path d="{area_d}" fill="url(#{grad_id})" stroke="none"/>')
+
+            # Glow halo behind the line
+            el.append(
+                f'<path d="{curve_d}" fill="none" stroke="{stroke_color}"'
+                f' stroke-width="8" stroke-opacity="0.18"'
+                f' stroke-linecap="round" stroke-linejoin="round"/>'
+            )
+            # Main line
+            el.append(
+                f'<path d="{curve_d}" fill="none" stroke="{stroke_color}"'
+                f' stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>'
+            )
+
+            # Error bars (±1 σ)
             for idx, (value, std) in enumerate(zip(values, stds)):
                 if std > 0:
                     x = scale_x(idx, len(x_values))
                     y_hi = scale_y(min(value + std, y_max), y_min, y_max, panel_top)
                     y_lo = scale_y(max(value - std, y_min), y_min, y_max, panel_top)
-                    elements.append(f'<line x1="{x:.2f}" y1="{y_hi:.2f}" x2="{x:.2f}" y2="{y_lo:.2f}" stroke="{color}" stroke-width="1.5" opacity="0.5"/>')
-                    elements.append(f'<line x1="{x - 4:.2f}" y1="{y_hi:.2f}" x2="{x + 4:.2f}" y2="{y_hi:.2f}" stroke="{color}" stroke-width="1.5" opacity="0.5"/>')
-                    elements.append(f'<line x1="{x - 4:.2f}" y1="{y_lo:.2f}" x2="{x + 4:.2f}" y2="{y_lo:.2f}" stroke="{color}" stroke-width="1.5" opacity="0.5"/>')
+                    el.append(
+                        f'<line x1="{x:.2f}" y1="{y_hi:.2f}" x2="{x:.2f}" y2="{y_lo:.2f}"'
+                        f' stroke="{stroke_color}" stroke-width="1.2" stroke-opacity="0.45"/>'
+                    )
+                    el.append(
+                        f'<line x1="{x-4:.2f}" y1="{y_hi:.2f}" x2="{x+4:.2f}" y2="{y_hi:.2f}"'
+                        f' stroke="{stroke_color}" stroke-width="1.2" stroke-opacity="0.45"/>'
+                    )
+                    el.append(
+                        f'<line x1="{x-4:.2f}" y1="{y_lo:.2f}" x2="{x+4:.2f}" y2="{y_lo:.2f}"'
+                        f' stroke="{stroke_color}" stroke-width="1.2" stroke-opacity="0.45"/>'
+                    )
+
+            # Data dots: outer glow ring + filled core
             for idx, value in enumerate(values):
                 x = scale_x(idx, len(x_values))
                 y = scale_y(value, y_min, y_max, panel_top)
-                elements.append(f'<circle cx="{x:.2f}" cy="{y:.2f}" r="4.5" fill="{color}" stroke="#ffffff" stroke-width="1"/>')
-            legend_x = left + panel_width - 170
-            legend_y = panel_top + 26 + series_index * 22
-            elements.append(f'<rect x="{legend_x}" y="{legend_y - 12}" width="10" height="10" fill="{color}"/>')
-            elements.append(f'<text x="{legend_x + 16}" y="{legend_y - 3}" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#334155">{escape(label)}</text>')
+                el.append(
+                    f'<circle cx="{x:.2f}" cy="{y:.2f}" r="8"'
+                    f' fill="{stroke_color}" fill-opacity="0.12" stroke="none"/>'
+                )
+                el.append(
+                    f'<circle cx="{x:.2f}" cy="{y:.2f}" r="4"'
+                    f' fill="{stroke_color}" stroke="#ffffff" stroke-width="1.5"/>'
+                )
 
-        return "\n".join(elements)
+            # Legend entry
+            legend_x = left + panel_width - 165
+            legend_y = panel_top + 32 + si * 22
+            el.append(
+                f'<rect x="{legend_x}" y="{legend_y - 9}" width="22" height="4"'
+                f' rx="2" fill="{stroke_color}" fill-opacity="0.85"/>'
+            )
+            el.append(
+                f'<text x="{legend_x + 28}" y="{legend_y - 2}"'
+                f' font-family="system-ui,\'Segoe UI\',Arial,sans-serif"'
+                f' font-size="11" fill="#374151">{escape(label)}</text>'
+            )
+
+        return "\n".join(el)
 
     throughput_panel = panel_svg(
-        top_margin,
-        "Débit",
-        "Débit (bits/s)",
-        [
-            (throughput_bits, throughput_bits_stds, "#dc2626", "Débit (bits/s)"),
-        ],
+        0, top_margin,
+        "Débit", "bits/s",
+        [(throughput_bits, throughput_bits_stds, 0, "Débit (bits/s)")],
     )
     collision_panel = panel_svg(
-        top_margin + panel_height + panel_gap,
-        "Taux de collision",
-        "Taux de collision (%)",
-        [(collision_rates, collision_stds, "#dc2626", "Taux de collision")],
+        1, top_margin + panel_height + panel_gap,
+        "Taux de collision", "%",
+        [(collision_rates, collision_stds, 1, "Taux de collision (%)")],
     )
     delay_panel = panel_svg(
-        top_margin + (panel_height + panel_gap) * 2,
-        "Délai moyen",
-        "Délai (ms)",
-        [(mean_delays, delay_stds, "#059669", "Délai moyen")],
+        2, top_margin + (panel_height + panel_gap) * 2,
+        "Délai moyen", "ms",
+        [(mean_delays, delay_stds, 2, "Délai moyen (ms)")],
     )
 
+    defs_xml = "\n  ".join(defs_parts)
     svg = f"""<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#f8fafc"/>
-      <stop offset="100%" stop-color="#eef2ff"/>
-    </linearGradient>
+  {defs_xml}
   </defs>
-  <rect width="100%" height="100%" fill="url(#bg)"/>
-  <text x="{width / 2}" y="40" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" fill="#111827">{escape(title)}</text>
-  <text x="{width / 2}" y="64" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#475569">{escape(x_label)}</text>
+  <rect width="100%" height="100%" fill="url(#svgBg)"/>
+  <rect width="100%" height="100%" fill="url(#topGlow)"/>
+  <text x="{width / 2}" y="46" text-anchor="middle"
+    font-family="system-ui,'Segoe UI',Arial,sans-serif"
+    font-size="22" font-weight="700" fill="#1e1b4b" letter-spacing="0.4">{escape(title)}</text>
+  <text x="{width / 2}" y="68" text-anchor="middle"
+    font-family="system-ui,'Segoe UI',Arial,sans-serif"
+    font-size="12" fill="#6b7280">{escape(x_label)}</text>
   {throughput_panel}
   {collision_panel}
   {delay_panel}
-  <text x="{width - 24}" y="{height - 18}" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#64748b">Généré par csma_ca_sim.py</text>
+  <text x="{width - 20}" y="{height - 14}" text-anchor="end"
+    font-family="system-ui,'Segoe UI',Arial,sans-serif"
+    font-size="10" fill="#9ca3af">csma_ca_sim.py</text>
 </svg>
 """
 
@@ -1070,6 +1308,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--seed", type=int, default=None, help="Random seed")
     parser.add_argument("--runs", type=int, default=1, help="Number of repetitions to average")
     parser.add_argument("--output", type=Path, default=Path("csma_ca_results.svg"), help="Plot output path")
+    parser.add_argument("--csv", type=Path, default=None, help="Optional path to save raw results as CSV")
     parser.add_argument("--rtscts", action="store_true", help="Enable RTS/CTS handshake and NAV")
     parser.add_argument("--rts-duration", type=float, default=200e-6, help="RTS duration in seconds")
     parser.add_argument("--cts-duration", type=float, default=200e-6, help="CTS duration in seconds")
@@ -1121,6 +1360,9 @@ def main() -> None:
             )
         plot_points(points, "CSMA/CA : impact du nombre de stations", "Nombre de stations", args.output)
         print(f"Plot saved to {args.output}")
+        if args.csv is not None:
+            save_csv(points, None, None, args.csv)
+            print(f"CSV saved to {args.csv}")
         return
 
     if args.sweep_wmin is not None:
@@ -1134,6 +1376,9 @@ def main() -> None:
             )
         plot_points(points, "CSMA/CA : impact de la fenêtre de contention minimale", "Fenêtre de contention minimale (Wmin)", args.output)
         print(f"Plot saved to {args.output}")
+        if args.csv is not None:
+            save_csv(points, None, None, args.csv)
+            print(f"CSV saved to {args.csv}")
         return
 
     if args.sweep_kmax is not None:
@@ -1147,6 +1392,9 @@ def main() -> None:
             )
         plot_points(points, "CSMA/CA : impact du nombre maximal de tentatives (K_max)", "Nombre maximal de tentatives K_max", args.output)
         print(f"Plot saved to {args.output}")
+        if args.csv is not None:
+            save_csv(points, None, None, args.csv)
+            print(f"CSV saved to {args.csv}")
         return
 
     if args.runs == 1:
@@ -1177,6 +1425,9 @@ def main() -> None:
         result = average_results(run_results)
 
     print_result(config, result)
+    if args.csv is not None:
+        save_csv(None, result, config, args.csv)
+        print(f"CSV saved to {args.csv}")
 
 
 if __name__ == "__main__":  # pragma: no cover
