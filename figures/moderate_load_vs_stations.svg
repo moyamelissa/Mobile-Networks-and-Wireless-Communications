@@ -27,8 +27,6 @@
     font-family="system-ui,'Segoe UI',Arial,sans-serif"
     font-size="22" font-weight="700" fill="#1e1b4b" letter-spacing="0.4">CSMA/CA : charge standard (λ=20 pkt/s) — impact du nombre de stations</text>
   <rect x="50" y="80" width="880" height="280" rx="14" fill="#ffffff" stroke="rgba(99,102,241,0.18)" stroke-width="1.2" filter="drop-shadow(0 2px 8px rgba(99,102,241,0.08))"/>
-<rect x="74" y="80" width="48" height="3" rx="2" fill="rgba(99,102,241,0.55)"/>
-<text x="70" y="112" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="15" font-weight="700" fill="#1e1b4b" letter-spacing="0.3">Débit</text>
 <text x="65" y="221.50" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="11" fill="#374151" transform="rotate(-90,65.00,221.50)">Débit (bits/s)</text>
 <line x1="145" y1="308.00" x2="900" y2="308.00" stroke="rgba(99,102,241,0.08)" stroke-width="1" stroke-dasharray="4,4"/>
 <line x1="145" y1="264.75" x2="900" y2="264.75" stroke="rgba(99,102,241,0.08)" stroke-width="1" stroke-dasharray="4,4"/>
@@ -119,8 +117,6 @@
 <rect x="765" y="103" width="22" height="4" rx="2" fill="#6366f1" fill-opacity="0.85"/>
 <text x="793" y="110" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="11" fill="#374151">Débit (bits/s)</text>
   <rect x="50" y="415" width="880" height="280" rx="14" fill="#ffffff" stroke="rgba(99,102,241,0.18)" stroke-width="1.2" filter="drop-shadow(0 2px 8px rgba(99,102,241,0.08))"/>
-<rect x="74" y="415" width="48" height="3" rx="2" fill="rgba(99,102,241,0.55)"/>
-<text x="70" y="447" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="15" font-weight="700" fill="#1e1b4b" letter-spacing="0.3">Taux de collision</text>
 <text x="65" y="556.50" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="11" fill="#374151" transform="rotate(-90,65.00,556.50)">Taux de collision (%)</text>
 <line x1="145" y1="643.00" x2="900" y2="643.00" stroke="rgba(99,102,241,0.08)" stroke-width="1" stroke-dasharray="4,4"/>
 <line x1="145" y1="599.75" x2="900" y2="599.75" stroke="rgba(99,102,241,0.08)" stroke-width="1" stroke-dasharray="4,4"/>
@@ -208,8 +204,6 @@
 <rect x="765" y="438" width="22" height="4" rx="2" fill="#a855f7" fill-opacity="0.85"/>
 <text x="793" y="445" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="11" fill="#374151">Taux de collision (%)</text>
   <rect x="50" y="750" width="880" height="280" rx="14" fill="#ffffff" stroke="rgba(99,102,241,0.18)" stroke-width="1.2" filter="drop-shadow(0 2px 8px rgba(99,102,241,0.08))"/>
-<rect x="74" y="750" width="48" height="3" rx="2" fill="rgba(99,102,241,0.55)"/>
-<text x="70" y="782" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="15" font-weight="700" fill="#1e1b4b" letter-spacing="0.3">Délai moyen</text>
 <text x="65" y="891.50" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="11" fill="#374151" transform="rotate(-90,65.00,891.50)">Délai moyen (ms)</text>
 <line x1="145" y1="978.00" x2="900" y2="978.00" stroke="rgba(99,102,241,0.08)" stroke-width="1" stroke-dasharray="4,4"/>
 <line x1="145" y1="934.75" x2="900" y2="934.75" stroke="rgba(99,102,241,0.08)" stroke-width="1" stroke-dasharray="4,4"/>

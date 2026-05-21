@@ -1133,18 +1133,6 @@ def plot_points(points: list[ExperimentPoint], title: str, x_label: str, output_
             f' rx="14" fill="#ffffff" stroke="rgba(99,102,241,0.18)" stroke-width="1.2"'
             f' filter="drop-shadow(0 2px 8px rgba(99,102,241,0.08))"/>'
         )
-        # Accent top bar
-        el.append(
-            f'<rect x="{left + 24}" y="{panel_top}" width="48" height="3"'
-            f' rx="2" fill="rgba(99,102,241,0.55)"/>'
-        )
-        # Panel title
-        el.append(
-            f'<text x="{left + 20}" y="{panel_top + 32}"'
-            f' font-family="system-ui,\'Segoe UI\',Arial,sans-serif"'
-            f' font-size="15" font-weight="700" fill="#1e1b4b" letter-spacing="0.3">'
-            f'{escape(panel_title)}</text>'
-        )
         # y-label: rotated along the y-axis
         y_center = panel_top + inner_top + (panel_height - inner_top - inner_bottom) / 2
         el.append(
