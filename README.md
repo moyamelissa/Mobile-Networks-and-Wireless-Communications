@@ -19,7 +19,7 @@ Conformément à l'énoncé, chaque station MAC ne traite qu'un seul paquet à l
 
 Un script d'automatisation (`tools/run_experiments.py`) permet de reproduire l'ensemble des expériences et de générer automatiquement les fichiers CSV et les graphiques.
 
-La génération des graphiques SVG est assurée par `tools/plot.py` (importé automatiquement par le simulateur).
+La génération des graphiques SVG est assurée par `tools/plot.py`, l'affichage console par `tools/print_result.py` et l'export CSV par `tools/save_csv.py` — tous importés automatiquement par le simulateur.
 
 Les résultats des simulations sont enregistrés dans le répertoire `data/` (CSV), tandis que les graphiques correspondants sont générés dans le répertoire `figures/`.
 
@@ -130,9 +130,11 @@ python -m pytest test_csma_ca_sim.py --cov=csma_ca_sim --cov-report=term-missing
 csma_ca_sim.py         # Simulateur principal (CSMA/CA, BEB, RTS/CTS)
 test_csma_ca_sim.py    # Suite de tests (103 tests, couverture 100 %)
 tools/
-    plot.py            # Génération des graphiques SVG (importé par csma_ca_sim.py)
-    run_experiments.py # Script de reproduction des 5 expériences du rapport
     __init__.py        # Marqueur de package Python
+    plot.py            # Génération des graphiques SVG
+    print_result.py    # Affichage console des résultats de simulation
+    save_csv.py        # Export CSV (mode balayage et simulation unique)
+    run_experiments.py # Script de reproduction des 5 expériences du rapport
 data/                  # Données CSV brutes des expériences
 figures/               # Graphiques SVG générés (5 scénarios)
 assets/                # Diagramme de fonctionnement (BEB flowchart)
