@@ -1,22 +1,10 @@
-"""Simulateur à événements discrets du protocole CSMA/CA.
+"""Simulateur à événements discrets du protocole CSMA/CA (IEEE 802.11, BEB, RTS/CTS optionnel).
 
-Ce module implémente la logique MAC du protocole CSMA/CA (Carrier Sense Multiple
-Access with Collision Avoidance) tel que défini par le standard IEEE 802.11.
-Il supporte le mode de base et une extension RTS/CTS avec mécanisme NAV.
-
-Usage typique (ligne de commande) :
+Usage :
     python csma_ca_sim.py --stations 8 --arrival-rate 20 --simulation-time 20
     python csma_ca_sim.py --sweep-stations 2 20 2 --runs 3 --output resultats.svg
 
-Structure principale :
-    SimulationConfig  — paramètres de la simulation (fenêtres, temporisations, etc.)
-    StationState      — état MAC d'une station individuelle
-    CSMACASimulator   — moteur à événements discrets
-    run_single_experiment / average_results / sweep_* — utilitaires d'expérimentation
-    main              — point d'entrée en ligne de commande
-
-Génération des graphiques : voir tools/plot.py (plot_points).
-Reproduction des expériences : voir tools/run_experiments.py.
+Graphiques : tools/plot.py — Expériences : tools/run_experiments.py
 """
 from __future__ import annotations
 
@@ -26,20 +14,16 @@ import math
 import random
 from dataclasses import dataclass as _dataclass
 
-# Le paramètre `slots` de `dataclass` n'existe qu'à partir de Python 3.10.
-# Cette compatibilité permet de garder un seul code source pour la CI en 3.8/3.9
-# et les environnements locaux plus récents ; si `slots` n'est pas disponible,
-# on le retire simplement.
+# `slots` n'existe que depuis Python 3.10 — retiré silencieusement si absent.
 _DATACLASS_SUPPORTS_SLOTS = True
 try:
-    # On crée une dataclass de test pour savoir si l'interpréteur gère `slots`.
     _dataclass(slots=True)(type("_X", (), {}))
 except TypeError:  # pragma: no cover
     _DATACLASS_SUPPORTS_SLOTS = False  # pragma: no cover
 
 
 def dataclass_compat(**kwargs):
-    """Crée un décorateur @dataclass compatible Python 3.8+ en retirant `slots` si nécessaire."""
+    """Décorateur @dataclass compatible 3.8+ (retire `slots` si non supporté)."""
     if not _DATACLASS_SUPPORTS_SLOTS and "slots" in kwargs:
         kwargs = {k: v for k, v in kwargs.items() if k != "slots"}
     return _dataclass(**kwargs)
@@ -53,32 +37,19 @@ from tools.save_csv import save_csv          # export CSV (tools/save_csv.py)
 
 
 # ---------------------------------------------------------------------------
-# Constantes — types d'événements du moteur de simulation
+# Types d'événements du moteur de simulation
 # ---------------------------------------------------------------------------
-# Chaque constante identifie un type d'événement inséré dans la file de priorité.
-# Utiliser des constantes nommées (plutôt que des entiers) rend le code lisible
-# et facilite le débogage.
-EVENT_ARRIVAL  = "arrival"    # Arrivée d'un nouveau paquet dans une station
-EVENT_SLOT_TICK = "slot_tick" # Déclenchement d'un slot de backoff
-EVENT_RTS_END  = "rts_end"    # Fin de l'émission d'une trame RTS (mode RTS/CTS)
-EVENT_DATA_END = "data_end"   # Fin de l'émission d'une trame de données
+EVENT_ARRIVAL  = "arrival"    # Arrivée d'un paquet dans une station
+EVENT_SLOT_TICK = "slot_tick" # Tick de slot de backoff
+EVENT_RTS_END  = "rts_end"    # Fin d'émission RTS (mode RTS/CTS)
+EVENT_DATA_END = "data_end"   # Fin d'émission d'une trame de données
 
 
 def next_slot_boundary(time_value: float, slot_time: float) -> float:
-    """Retourne le prochain instant aligné sur une borne de slot.
+    """Retourne le plus petit multiple de slot_time >= time_value.
 
-    Le décalage de 1e-15 s évite qu'un instant déjà exactement aligné
-    (flottant) soit arrondi au slot suivant à cause des erreurs de précision.
-
-    Args:
-        time_value: Instant courant (en secondes).
-        slot_time:  Durée d'un slot (en secondes, doit être > 0).
-
-    Returns:
-        Le plus petit multiple de slot_time supérieur ou égal à time_value.
-
-    Raises:
-        ValueError: Si slot_time <= 0.
+    Le décalage 1e-15 corrige les erreurs d'arrondi sur les flottants déjà alignés.
+    Lève ValueError si slot_time <= 0.
     """
     if slot_time <= 0:
         raise ValueError("slot_time must be positive")
@@ -89,11 +60,7 @@ def next_slot_boundary(time_value: float, slot_time: float) -> float:
 
 @dataclass_compat(slots=True)
 class SimulationConfig:
-    """Paramètres globaux de la simulation.
-
-    Regroupe toutes les hypothèses MAC et temporelles qui pilotent le modèle.
-    Les valeurs par défaut correspondent au standard IEEE 802.11b.
-    """
+    """Paramètres MAC et temporels de la simulation (défauts : IEEE 802.11b)."""
     station_count: int = 8        # Nombre de stations en compétition pour le canal
     arrival_rate: float = 20.0    # Taux d'arrivée par station (paquets/s) — processus de renouvellement
     simulation_time: float = 20.0 # Horizon de simulation (secondes)
@@ -113,25 +80,14 @@ class SimulationConfig:
 
 @dataclass_compat(slots=True)
 class PacketState:
-    """Représente une trame en attente de transmission dans une station.
-
-    Une instance est créée à chaque arrivée de paquet et détruite après
-    transmission réussie ou abandon (K > K_max).
-    """
+    """Trame active dans une station (créée à l'arrivée, détruite après succès ou abandon)."""
     arrival_time: float  # Instant de génération du paquet — sert à calculer le délai moyen
     attempts: int = 0   # Nombre de tentatives de transmission déjà effectuées pour ce paquet
 
 
 @dataclass_compat(slots=True)
 class StationState:
-    """État MAC d'une station individuelle.
-
-    Le sujet impose qu'une station MAC ne garde qu'une seule trame à la fois :
-    `packet` est None quand la station est inactive, ou contient l'unique trame
-    en cours de transmission (attente de succès ou d'abandon).
-    `contention_window`, `backoff` et `retries` pilotent l'algorithme BEB.
-    `nav_until` matérialise la réservation du médium par le mécanisme NAV (RTS/CTS).
-    """
+    """État MAC d'une station : une seule trame active (None = inactive), compteurs BEB et NAV."""
     station_id: int                      # Identifiant unique de la station (index dans la liste)
     packet: Optional[PacketState] = None # Trame active (None = station inactive)
     contention_window: int = 0           # Fenêtre de contention courante W ∈ [W_min, W_max]
@@ -142,11 +98,7 @@ class StationState:
 
 @dataclass_compat(slots=True)
 class SimulationResult:
-    """Résultats agrégés produits à la fin d'une simulation.
-
-    Retourné par run_single_experiment() et average_results().
-    Utilisé pour l'affichage console (print_result) et les graphiques (plot_points).
-    """
+    """Métriques agrégées retournées par run_single_experiment() et average_results()."""
     throughput_packets_per_s: float   # Débit en paquets transmis avec succès par seconde
     throughput_bits_per_s: float      # Débit binaire utile (bits/s)
     channel_utilization: float        # Fraction du temps où le canal transporte des données utiles
@@ -162,12 +114,7 @@ class SimulationResult:
 
 @dataclass_compat(slots=True)
 class ExperimentPoint:
-    """Un point de courbe expérimentale : une valeur de paramètre et les métriques associées.
-
-    Produit par sweep_stations(), sweep_wmin() et sweep_kmax() ; consommé par plot_points().
-    Les champs *_std contiennent l'écart-type calculé sur les `runs` répétitions,
-    permettant de tracer des barres d'erreur (±1σ) sur les graphiques.
-    """
+    """Point de courbe : valeur du paramètre balayé + métriques moyennes et écarts-types (±σ)."""
     x_value: int                       # Valeur du paramètre balayé (ex. nombre de stations)
     throughput_packets_per_s: float    # Débit moyen (paquets/s)
     throughput_bits_per_s: float       # Débit binaire moyen (bits/s)
@@ -179,70 +126,43 @@ class ExperimentPoint:
 
 
 class CSMACASimulator:
-    """Moteur à événements discrets du protocole CSMA/CA.
-
-    Gère la file de priorité des événements, l'état de chaque station,
-    l'état global du canal et les compteurs de métriques.
-    Instancier puis appeler run() pour obtenir un SimulationResult.
-    """
+    """Moteur à événements discrets CSMA/CA. Instancier puis appeler run()."""
 
     def __init__(self, config: SimulationConfig):
-        """Initialise le simulateur avec la configuration donnée.
-
-        Args:
-            config: Paramètres de la simulation (voir SimulationConfig).
-        """
+        """Initialise le simulateur avec la configuration donnée."""
         self.config = config
-        # Générateur aléatoire isolé — garantit la reproductibilité via config.seed.
-        self.random = random.Random(config.seed)
-        # Une instance StationState par station participant à la contention.
-        self.stations = [StationState(station_id=index) for index in range(config.station_count)]
+        self.random = random.Random(config.seed)  # RNG isolé — reproductible via config.seed
+        self.stations = [StationState(station_id=i) for i in range(config.station_count)]
 
-        # File de priorité (min-heap) : chaque entrée est un tuple
-        # (temps, sequence, type_événement, station_id, jeton).
-        # Le numéro de séquence monotone brise les égalités de temps de façon déterministe.
+        # Min-heap : (temps, séquence, type_événement, station_id, jeton)
+        # Séquence monotone pour ordre stable à temps égaux.
         self.event_queue: list[tuple[float, int, str, int, Optional[int]]] = []
-        self.sequence = 0  # Compteur global pour le numéro de séquence des événements
+        self.sequence = 0
 
-        # Ensemble des identifiants de stations actuellement en phase de backoff actif.
-        self.contenders: set[int] = set()
-        # Ensemble des stations engagées dans la transmission en cours (None si canal libre).
-        # Si len > 1, une collision est en cours.
-        self.current_transmission: Optional[set[int]] = None
-        # Instant à partir duquel la contention peut reprendre (après DIFS).
-        self.contention_open_time = 0.0
-        # Instant planifié pour le prochain slot_tick (None si aucun planifié).
-        self.scheduled_slot_tick_time: Optional[float] = None
-        # Jeton permettant d'invalider les événements slot_tick périmés sans les retirer de la file.
-        self.slot_tick_token = 0
+        self.contenders: set[int] = set()                      # Stations en phase de backoff
+        self.current_transmission: Optional[set[int]] = None   # En transmission (None = libre ; len > 1 = collision)
+        self.contention_open_time = 0.0                        # Ouverture de contention après DIFS
+        self.scheduled_slot_tick_time: Optional[float] = None  # Prochain slot_tick prévu
+        self.slot_tick_token = 0                               # Jeton d'invalidation des slot_ticks périmés
 
-        # Compteurs de métriques — cumulés au fil des événements, agrégés dans run().
-        self.generated_packets = 0   # Paquets générés par les stations
-        self.successful_packets = 0  # Paquets transmis avec succès
-        self.dropped_packets = 0     # Paquets abandonnés après K_max tentatives
-        self.total_attempts = 0      # Tentatives de transmission totales
-        self.collided_packets = 0    # Tentatives ayant abouti à une collision
-        self.successful_bits = 0     # Bits utiles transmis (pour le débit binaire)
-        self.delay_sum = 0.0         # Somme des délais individuels (pour la moyenne)
+        # Compteurs cumulés — agrégés dans run()
+        self.generated_packets = 0
+        self.successful_packets = 0
+        self.dropped_packets = 0
+        self.total_attempts = 0
+        self.collided_packets = 0
+        self.successful_bits = 0
+        self.delay_sum = 0.0
 
     def run(self) -> SimulationResult:
-        """Lance la simulation et retourne les métriques agrégées.
-
-        1. Planifie la première arrivée de paquet pour chaque station.
-        2. Traite les événements en ordre chronologique jusqu'à épuisement de la file.
-        3. Calcule et retourne les métriques de performance.
-
-        Returns:
-            SimulationResult contenant débit, taux de collision, délai moyen, etc.
-        """
-        # Planification des premières arrivées : chaque station commence avec
-        # un premier paquet tiré selon la loi exponentielle de paramètre arrival_rate.
+        """Planifie les premières arrivées, traite la file d'événements, retourne les métriques."""
+        # Première arrivée de chaque station (loi exponentielle)
         for station_id in range(self.config.station_count):
             first_arrival = self._sample_interarrival()
             if first_arrival <= self.config.simulation_time:
                 self._push_event(first_arrival, EVENT_ARRIVAL, station_id)
 
-        # Boucle principale : dépile et traite chaque événement en ordre chronologique.
+        # Boucle principale : traite les événements par ordre chronologique
         while self.event_queue:
             time_value, _, event_type, station_id, token = heapq.heappop(self.event_queue)
 
@@ -262,21 +182,16 @@ class CSMACASimulator:
             else:
                 raise RuntimeError(f"Unknown event type: {event_type}")
 
-        # --- Calcul des métriques finales ---
-        # Débit en paquets et en bits : rapporte les succès à la durée de simulation.
+        # Métriques finales
         throughput_packets_per_s = self.successful_packets / self.config.simulation_time if self.config.simulation_time > 0 else 0.0
         throughput_bits_per_s = self.successful_bits / self.config.simulation_time if self.config.simulation_time > 0 else 0.0
-        # Utilisation du canal : fraction du temps effectivement occupé par des données utiles.
         channel_utilization = (
             (self.successful_packets * self.config.packet_duration) / self.config.simulation_time
             if self.config.simulation_time > 0 and self.config.packet_duration > 0
             else 0.0
         )
-        # Charge offerte : paquets générés par unité de temps (inclut succès + abandons).
         offered_load_packets_per_s = self.generated_packets / self.config.simulation_time if self.config.simulation_time > 0 else 0.0
-        # Taux de collision : proportion des tentatives ayant abouti à un conflit.
         collision_rate = self.collided_packets / self.total_attempts if self.total_attempts > 0 else 0.0
-        # Délai moyen : moyenne des délais individuels (génération → succès).
         mean_delay_s = self.delay_sum / self.successful_packets if self.successful_packets > 0 else 0.0
 
         return SimulationResult(
@@ -294,153 +209,106 @@ class CSMACASimulator:
         )
 
     def _push_event(self, time_value: float, event_type: str, station_id: int, token: Optional[int] = None) -> None:
-        """Insère un événement dans la file de priorité.
-
-        Le numéro de séquence monotone garantit un ordre stable lorsque deux
-        événements partagent le même instant (tri secondaire déterministe).
-        """
+        """Insère un événement dans la file (séquence monotone pour ordre stable à temps égaux)."""
         self.sequence += 1
         heapq.heappush(self.event_queue, (time_value, self.sequence, event_type, station_id, token))
 
     def _sample_interarrival(self) -> float:
-        """Tire un intervalle inter-arrivée selon la loi exponentielle de paramètre arrival_rate.
-
-        Les inter-arrivées sont exponentielles de paramètre λ = arrival_rate, mais comme une station
-        suspend la génération pendant le traitement d'un paquet, le processus d'arrivée global
-        est un processus de renouvellement — non un Poisson pur — conformément à l'hypothèse du sujet.
-        Retourne math.inf si arrival_rate <= 0, ce qui désactive les arrivées.
+        """Inter-arrivée ~ Exp(λ). Processus de renouvellement (non Poisson pur).
+        Retourne inf si arrival_rate <= 0.
         """
         if self.config.arrival_rate <= 0:
             return math.inf
         return self.random.expovariate(self.config.arrival_rate)
 
     def _sample_backoff(self, contention_window: int) -> int:
-        """Tire un compteur de backoff b uniformément dans [0, contention_window].
-
-        Conforme à la règle IEEE 802.11 : b = U[0, W] où W est la fenêtre courante.
-        """
+        """Tire b ~ U[0, contention_window] (règle BEB IEEE 802.11)."""
         return self.random.randint(0, contention_window)
 
     def _prime_station_for_contention(self, station_id: int, current_time: float) -> None:
-        """Initialise les compteurs d'une station et l'enregistre comme contendante.
-
-        Appelé à l'arrivée d'un nouveau paquet. Réinitialise W à W_min, K à 0,
-        tire un backoff initial et déclenche le prochain slot_tick si le canal est libre.
-        """
+        """Initialise W=W_min, K=0, tire b et enregistre la station en contention."""
         station = self.stations[station_id]
         if station.packet is None:
-            return  # Sécurité : ne rien faire si la station n'a pas de paquet actif
+            return  # Pas de paquet actif : rien à faire
 
-        # Initialisation conforme à IEEE 802.11 : W_min et K=0 pour le premier essai.
+        # W=W_min, K=0 pour le premier essai (IEEE 802.11)
         station.contention_window = self.config.wmin
         station.retries = 0
         station.backoff = self._sample_backoff(station.contention_window)
         self.contenders.add(station_id)
 
-        # Déclenche le slot_tick seulement si aucune transmission n'est en cours.
+        # Déclenche le slot_tick si le canal est libre
         if self.current_transmission is None:
             self._schedule_slot_tick_if_needed(current_time)
 
     def _schedule_next_arrival(self, station_id: int, base_time: float) -> None:
-        """Planifie la prochaine arrivée de paquet pour une station.
-
-        Conforme à l'hypothèse du sujet : la station ne génère un nouveau paquet
-        qu'après résolution (succès ou abandon) du paquet précédent.
-        L'événement n'est pas planifié si l'instant calculé dépasse l'horizon de simulation.
-        """
+        """Planifie la prochaine arrivée après résolution du paquet courant (dans l'horizon)."""
         next_arrival = base_time + self._sample_interarrival()
         if next_arrival <= self.config.simulation_time:
             self._push_event(next_arrival, EVENT_ARRIVAL, station_id)
 
     def _schedule_slot_tick_if_needed(self, current_time: float) -> None:
-        """Planifie le prochain événement slot_tick si les conditions le permettent.
-
-        Un slot_tick ne peut être planifié que si :
-        - aucune transmission n'est en cours (canal libre), et
-        - au moins une station est en phase de backoff actif.
-
-        Le mécanisme de jeton (slot_tick_token) permet d'invalider les slot_ticks
-        planifiés précédemment sans les retirer physiquement de la file de priorité.
-        Un slot_tick périmé (jeton obsolète) est simplement ignoré à la dépile.
+        """Planifie le prochain slot_tick si le canal est libre et des stations attendent.
+        Le mécanisme de jeton invalide les slot_ticks périmés sans les retirer de la file.
         """
         if self.current_transmission is not None or not self.contenders:
-            return  # Canal occupé ou aucune station en attente : pas de slot_tick nécessaire
+            return  # Canal occupé ou aucune station en attente
 
-        # Le prochain slot doit respecter la période DIFS post-transmission (contention_open_time).
+        # Respecte la période DIFS post-transmission (contention_open_time)
         candidate = next_slot_boundary(max(current_time, self.contention_open_time), self.config.slot_time)
         if self.scheduled_slot_tick_time is not None and self.scheduled_slot_tick_time <= candidate:
-            return  # Un slot_tick déjà planifié à un instant antérieur est suffisant
+            return  # Slot_tick antérieur déjà planifié
 
-        # Invalide tout slot_tick précédent en incrémentant le jeton.
+        # Invalide le slot_tick précédent via le jeton
         self.slot_tick_token += 1
         self.scheduled_slot_tick_time = candidate
         self._push_event(candidate, EVENT_SLOT_TICK, -1, self.slot_tick_token)
 
     def _start_transmission(self, current_time: float, station_ids: list[int]) -> None:
-        """Démarre une transmission de données (mode sans RTS/CTS).
-
-        Si plusieurs stations transmettent simultanément (len > 1), c'est une collision :
-        la trame se termine sans SIFS car aucun ACK ne suivra.
-        Si une seule station transmet, on ajoute le SIFS pour modéliser l'ACK implicite.
-        Dans tous les cas, un événement DATA_END est planifié en fin de trame.
-        """
+        """Démarre une transmission DATA. Collision si len > 1 (sans SIFS) ; succès avec SIFS. Planifie DATA_END."""
         if not station_ids:
             return
 
         self.current_transmission = set(station_ids)
         for station_id in station_ids:
-            self.contenders.discard(station_id)  # La station quitte la phase de contention
+            self.contenders.discard(station_id)  # Quitte la phase de contention
             self.stations[station_id].packet.attempts += 1  # type: ignore[union-attr]
 
         self.total_attempts += len(station_ids)
         if len(station_ids) > 1:
-            # Collision logique : plusieurs stations ont atteint b=0 simultanément.
-            # Pas de SIFS car la trame est corrompue — aucun ACK ne sera envoyé.
+            # Collision : trame corrompue, pas de SIFS
             release_time = current_time + self.config.packet_duration
         else:
-            # Transmission unique réussie : on ajoute le SIFS (délai avant ACK implicite).
+            # Succès : SIFS avant ACK implicite
             release_time = current_time + self.config.packet_duration + self.config.sifs
 
-        # Invalide tout slot_tick planifié : le canal est maintenant occupé.
+        # Canal occupé — invalide les slot_ticks en attente
         self.slot_tick_token += 1
         self.scheduled_slot_tick_time = None
         self._push_event(release_time, EVENT_DATA_END, -1)
 
     def _start_rts(self, current_time: float, station_ids: list[int]) -> None:
-        """Démarre l'émission d'une trame RTS (mode RTS/CTS activé).
-
-        Identique à _start_transmission mais planifie un événement RTS_END
-        au lieu de DATA_END. La résolution collision/succès est traitée dans
-        _handle_rts_end, qui décidera ensuite si la donnée peut être transmise.
-        """
+        """Démarre une émission RTS. Planifie RTS_END ; collision/succès résolus dans _handle_rts_end."""
         if not station_ids:
             return
 
         self.current_transmission = set(station_ids)
         for station_id in station_ids:
-            self.contenders.discard(station_id)  # La station entre en phase RTS
+            self.contenders.discard(station_id)  # Quitte la phase de contention (entre en RTS)
             self.stations[station_id].packet.attempts += 1  # type: ignore[union-attr]
 
         self.total_attempts += len(station_ids)
         rts_end = current_time + self.config.rts_duration
-        # Invalide les slot_ticks pendant l'émission du RTS.
+        # Canal occupé durant l'émission RTS — invalide les slot_ticks
         self.slot_tick_token += 1
         self.scheduled_slot_tick_time = None
         self._push_event(rts_end, EVENT_RTS_END, -1)
 
     def _handle_arrival(self, current_time: float, station_id: int) -> None:
-        """Traite l'arrivée d'un nouveau paquet dans une station.
-
-        Crée une instance PacketState, incrémente le compteur global et amorce
-        la procédure de contention (initialisation de W, K et b) via
-        _prime_station_for_contention.
-        Ignoré si la station possède déjà un paquet actif (ne devrait pas arriver
-        avec la génération interne, mais protège contre les cas pathologiques).
-        """
+        """Crée le PacketState, incrémente le compteur et amorce la contention (W, K, b)."""
         station = self.stations[station_id]
         if station.packet is not None:
-            # Cas théoriquement impossible avec la génération interne : la station ne doit
-            # pas produire une nouvelle trame tant que la précédente n'est pas résolue.
+            # Impossible avec la génération interne (paquet précédent non résolu)
             return
 
         self.generated_packets += 1
@@ -448,25 +316,14 @@ class CSMACASimulator:
         self._prime_station_for_contention(station_id, current_time)
 
     def _handle_slot_tick(self, current_time: float) -> None:
-        """Traite un événement slot_tick : décrémente les backoffs et déclenche les transmissions.
-
-        Logique en trois étapes :
-        1. Si une ou plusieurs stations ont déjà b=0 avant décrémentation, elles transmettent.
-        2. Sinon, décrémente b de 1 pour toutes les stations actives (hors NAV).
-        3. Si après décrémentation une ou plusieurs stations atteignent b=0, elles transmettent.
-        4. Sinon, planifie le slot suivant.
-
-        La double vérification (avant et après décrémentation) gère correctement le cas
-        où b=0 était déjà atteint lors du déclenchement initial de la contention.
-        """
+        """Décrémente les backoffs des stations actives (hors NAV) et déclenche la transmission si b=0."""
         if self.current_transmission is not None or not self.contenders:
-            return  # Canal occupé ou aucune station en contention : slot ignoré
+            return  # Canal occupé ou aucune station en contention
 
-        # Seules les stations hors NAV peuvent réellement contester le médium.
-        # Les stations sous NAV (mode RTS/CTS) sont exclues de la décrémentation.
+        # Stations hors NAV uniquement
         active = [s for s in self.contenders if self.stations[s].nav_until <= current_time]
 
-        # Étape 1 : stations déjà à b=0 — elles transmettent immédiatement.
+        # Étape 1 : b=0 déjà atteint — transmission immédiate
         ready_to_send = [station_id for station_id in active if self.stations[station_id].backoff == 0]
         if ready_to_send:
             if self.config.rtscts:
@@ -475,13 +332,13 @@ class CSMACASimulator:
                 self._start_transmission(current_time, ready_to_send)
             return
 
-        # Étape 2 : décrémentation du backoff pour toutes les stations actives.
+        # Étape 2 : décrémentation
         for station_id in active:
             station = self.stations[station_id]
             if station.backoff > 0:
                 station.backoff -= 1
 
-        # Étape 3 : stations qui atteignent b=0 après décrémentation.
+        # Étape 3 : b=0 après décrémentation
         active_after = [station_id for station_id in active if self.stations[station_id].backoff == 0]
         if active_after:
             if self.config.rtscts:
@@ -490,33 +347,25 @@ class CSMACASimulator:
                 self._start_transmission(current_time, active_after)
             return
 
-        # Étape 4 : aucune station prête — planifie le slot suivant.
+        # Étape 4 : aucune station prête — prochain slot
         self._schedule_slot_tick_if_needed(current_time + self.config.slot_time)
     def _handle_rts_end(self, current_time: float) -> None:
-        """Traite la fin d'une émission RTS (mode RTS/CTS).
-
-        Deux cas :
-        - Collision RTS (len > 1) : applique le BEB à chaque station concernée,
-          ou abandonne le paquet si K > K_max.
-        - RTS réussi (len = 1) : le point d'accès envoie un CTS, toutes les autres
-          stations bloquent leur backoff via le NAV, puis la donnée est transmise.
-        """
+        """Fin RTS : collision → BEB ou abandon ; succès → NAV sur les autres stations + planifie DATA_END."""
         if self.current_transmission is None:
             return
 
         if len(self.current_transmission) > 1:
-            # --- Collision RTS : plusieurs stations ont émis simultanément ---
+            # Collision RTS
             affected_stations = list(self.current_transmission)
             self.collided_packets += len(affected_stations)
             self.current_transmission = None
-            # Les stations doivent attendre DIFS avant de pouvoir re-contester.
-            self.contention_open_time = current_time + self.config.difs
+            self.contention_open_time = current_time + self.config.difs  # Attente DIFS avant re-contention
 
             for station_id in affected_stations:
                 station = self.stations[station_id]
                 station.retries += 1
                 if station.retries > self.config.kmax:
-                    # K_max dépassé : paquet abandonné, réinitialisation complète.
+                    # K_max dépassé : paquet abandonné
                     self.dropped_packets += 1
                     station.packet = None
                     station.contention_window = self.config.wmin
@@ -524,7 +373,7 @@ class CSMACASimulator:
                     self._schedule_next_arrival(station_id, current_time)
                     continue
 
-                # BEB : W ← min(2W+1, W_max), nouveau tirage de backoff.
+                # BEB : W ← min(2W+1, W_max)
                 station.contention_window = min(2 * station.contention_window + 1, self.config.wmax)
                 station.backoff = self._sample_backoff(station.contention_window)
                 self.contenders.add(station_id)
@@ -532,59 +381,46 @@ class CSMACASimulator:
             self._schedule_slot_tick_if_needed(current_time)
             return
 
-        # --- RTS réussi : une seule station a émis ---
+        # RTS réussi : une seule station
         station_id = next(iter(self.current_transmission))
         # Chronologie : RTS_end + SIFS + CTS + SIFS + DATA
         data_end_time = current_time + self.config.sifs + self.config.cts_duration + self.config.sifs + self.config.packet_duration
 
-        # Mécanisme NAV : toutes les autres stations bloquent leur backoff
-        # jusqu'à la fin prévue de la transmission de données.
+        # NAV : autres stations bloquent leur backoff jusqu'à la fin de la transmission
         for s in range(len(self.stations)):
             if s == station_id:
                 continue
             st = self.stations[s]
             if st.packet is not None:
-                st.nav_until = data_end_time  # Réservation du médium via NAV
+                st.nav_until = data_end_time
 
-        # On programme la fin de la transmission de données.
         self._push_event(data_end_time, EVENT_DATA_END, -1)
 
     def _handle_data_end(self, current_time: float) -> None:
-        """Traite la fin d'une transmission de données.
-
-        Deux cas :
-        - Succès (len = 1) : enregistre le paquet, calcule le délai, libère la station,
-          ouvre la prochaine fenêtre de contention après DIFS.
-        - Collision (len > 1) : applique le BEB à chaque station concernée
-          (mode sans RTS/CTS) ou abandonne si K > K_max.
-          Avec RTS/CTS, ce cas est rare car le NAV protège la transmission.
-        """
+        """Fin DATA : succès → enregistre métriques, libère station ; collision → BEB ou abandon."""
         if self.current_transmission is None:
             return
 
         is_collision = len(self.current_transmission) > 1
         if not is_collision:
-            # --- Transmission réussie ---
+            # Transmission réussie
             station_id = next(iter(self.current_transmission))
             station = self.stations[station_id]
             self.successful_packets += 1
             self.successful_bits += self.config.packet_bits
-            # Délai individuel : temps entre génération et fin de transmission réussie.
             self.delay_sum += current_time - station.packet.arrival_time  # type: ignore[union-attr]
             station.packet = None
-            # Réinitialisation des compteurs de contention après succès.
             station.contention_window = self.config.wmin
             station.retries = 0
             self.current_transmission = None
-            # La prochaine contention ne peut débuter qu'après DIFS.
-            self.contention_open_time = current_time + self.config.difs
+            self.contention_open_time = current_time + self.config.difs  # Prochaine contention après DIFS
             self._schedule_next_arrival(station_id, current_time)
             self._schedule_slot_tick_if_needed(current_time)
             return
 
-        # --- Collision de données : cas rare avec RTS/CTS, ou plusieurs émetteurs synchrones ---
+        # Collision DATA (rare avec RTS/CTS ; possible sans)
         affected_stations = list(self.current_transmission)
-        self.collided_packets += len(affected_stations)  # Chaque station impliquée compte comme une collision
+        self.collided_packets += len(affected_stations)
         self.current_transmission = None
         self.contention_open_time = current_time + self.config.difs
 
@@ -592,16 +428,15 @@ class CSMACASimulator:
             station = self.stations[station_id]
             station.retries += 1
             if station.retries > self.config.kmax:
-                # K_max dépassé : paquet abandonné, réinitialisation complète.
-                self.dropped_packets += 1
-                station.packet = None
-                station.contention_window = self.config.wmin
-                station.retries = 0
-                self._schedule_next_arrival(station_id, current_time)
-                continue
+                    # K_max dépassé : paquet abandonné
+                    self.dropped_packets += 1
+                    station.packet = None
+                    station.contention_window = self.config.wmin
+                    station.retries = 0
+                    self._schedule_next_arrival(station_id, current_time)
+                    continue
 
-            # BEB : W ← min(2W+1, W_max), nouveau tirage de backoff.
-            station.contention_window = min(2 * station.contention_window + 1, self.config.wmax)
+                # BEB : W ← min(2W+1, W_max)
             station.backoff = self._sample_backoff(station.contention_window)
             self.contenders.add(station_id)
 
@@ -609,24 +444,13 @@ class CSMACASimulator:
 
 
 def run_single_experiment(config: SimulationConfig) -> SimulationResult:
-    """Crée un simulateur, lance une simulation et retourne les métriques.
-
-    Fonction utilitaire qui encapsule la création de CSMACASimulator et l'appel à run().
-    """
+    """Crée et lance un CSMACASimulator ; retourne les métriques."""
     simulator = CSMACASimulator(config)
     return simulator.run()
 
 
 def average_results(results: list[SimulationResult]) -> SimulationResult:
-    """Calcule la moyenne de plusieurs SimulationResult.
-
-    Les compteurs entiers (paquets générés, tentatives, etc.) sont sommés.
-    Les métriques continues (débit, taux, délai) sont moyennées.
-    Utilisé pour réduire les fluctuations statistiques lors de runs multiples.
-
-    Raises:
-        ValueError: Si la liste results est vide.
-    """
+    """Moyenne des métriques continues, somme des compteurs entiers. Lève ValueError si vide."""
     if not results:
         raise ValueError("results must not be empty")
 
@@ -652,23 +476,9 @@ def sweep_stations(
     step: int,
     runs: int,
 ) -> list[ExperimentPoint]:
-    """Balaye le nombre de stations de start à stop (inclus) par pas de step.
+    """Balaye N de start à stop par pas step, `runs` répétitions par point.
 
-    Pour chaque valeur, exécute `runs` simulations avec des graines différentes
-    et retourne la moyenne des métriques sous forme de liste d'ExperimentPoint.
-
-    Args:
-        base_config: Configuration de référence (les autres paramètres sont conservés).
-        start:       Nombre de stations minimal.
-        stop:        Nombre de stations maximal (inclus).
-        step:        Pas d'incrémentation (doit être > 0).
-        runs:        Nombre de répétitions par configuration (doit être > 0).
-
-    Returns:
-        Liste d'ExperimentPoint triée par x_value croissant.
-
-    Raises:
-        ValueError: Si step <= 0 ou runs <= 0.
+    Retourne une liste d'ExperimentPoint (moyenne ± σ). Lève ValueError si step/runs <= 0.
     """
     if step <= 0:
         raise ValueError("step must be positive")
@@ -725,24 +535,10 @@ def sweep_wmin(
     step: int,
     runs: int,
 ) -> list[ExperimentPoint]:
-    """Balaye la fenêtre de contention minimale W_min de start à stop par pas de step.
+    """Balaye W_min de start à stop par pas step, `runs` répétitions par point.
 
-    Identique à sweep_stations mais fait varier wmin au lieu du nombre de stations.
-    W_max est automatiquement ajusté à max(base_config.wmax, wmin) pour garantir
-    wmin <= wmax à tout instant.
-
-    Args:
-        base_config: Configuration de référence.
-        start:       Valeur minimale de W_min.
-        stop:        Valeur maximale de W_min (incluse).
-        step:        Pas d'incrémentation (doit être > 0).
-        runs:        Nombre de répétitions par configuration (doit être > 0).
-
-    Returns:
-        Liste d'ExperimentPoint triée par x_value croissant.
-
-    Raises:
-        ValueError: Si step <= 0 ou runs <= 0.
+    W_max est ajusté à max(wmax, wmin) pour maintenir wmin <= wmax.
+    Lève ValueError si step/runs <= 0.
     """
     if step <= 0:
         raise ValueError("step must be positive")
@@ -799,25 +595,10 @@ def sweep_kmax(
     step: int,
     runs: int,
 ) -> list[ExperimentPoint]:
-    """Balaye le nombre maximal de tentatives K_max de start à stop par pas de step.
+    """Balaye K_max de start à stop par pas step, `runs` répétitions par point.
 
-    Pour chaque valeur de K_max, exécute `runs` simulations avec des graines différentes
-    et retourne la moyenne des métriques sous forme de liste d'ExperimentPoint.
-    Un K_max faible provoque des abandons rapides (faible délai, paquets perdus) ;
-    un K_max élevé laisse le BEB converger au prix d'un délai plus long.
-
-    Args:
-        base_config: Configuration de référence.
-        start:       Valeur minimale de K_max.
-        stop:        Valeur maximale de K_max (incluse).
-        step:        Pas d'incrémentation (doit être > 0).
-        runs:        Nombre de répétitions par configuration (doit être > 0).
-
-    Returns:
-        Liste d'ExperimentPoint triée par x_value croissant.
-
-    Raises:
-        ValueError: Si step <= 0 ou runs <= 0.
+    K_max faible → abandons rapides ; K_max élevé → BEB converge, délai plus long.
+    Lève ValueError si step/runs <= 0.
     """
     if step <= 0:
         raise ValueError("step must be positive")
@@ -868,11 +649,7 @@ def sweep_kmax(
 
 
 def build_arg_parser() -> argparse.ArgumentParser:
-    """Construit et retourne le parseur d'arguments en ligne de commande.
-
-    Expose tous les paramètres de SimulationConfig ainsi que les options
-    de balayage (--sweep-stations, --sweep-wmin) et de répétition (--runs).
-    """
+    """Construit le parseur CLI (paramètres SimulationConfig + balayages paramétriques)."""
     parser = argparse.ArgumentParser(description="Simulateur à événements discrets du protocole CSMA/CA avec backoff exponentiel binaire")
     # --- Paramètres de la simulation ---
     parser.add_argument("--stations", type=int, default=8, help="Nombre de stations en compétition pour le canal")
@@ -908,11 +685,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
 
 
 def main() -> None:
-    """Point d'entrée principal du simulateur.
-
-    Parse les arguments, construit la configuration, lance le ou les balayages
-    paramétriques ou une simulation simple, puis affiche et sauvegarde les résultats.
-    """
+    """Point d'entrée CLI : parse les arguments, lance la simulation ou le balayage, affiche et sauvegarde."""
     args = build_arg_parser().parse_args()
     config = SimulationConfig(
         station_count=args.stations,

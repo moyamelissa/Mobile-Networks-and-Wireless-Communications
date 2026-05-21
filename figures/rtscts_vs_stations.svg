@@ -103,8 +103,6 @@
 <circle cx="818.33" cy="104.67" r="4" fill="#6366f1" stroke="#ffffff" stroke-width="1.5"/>
 <circle cx="900.00" cy="89.42" r="8" fill="#6366f1" fill-opacity="0.12" stroke="none"/>
 <circle cx="900.00" cy="89.42" r="4" fill="#6366f1" stroke="#ffffff" stroke-width="1.5"/>
-<rect x="765" y="43" width="22" height="4" rx="2" fill="#6366f1" fill-opacity="0.85"/>
-<text x="793" y="50" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="16" fill="#374151">Débit (bits/s)</text>
   <rect x="50" y="355" width="880" height="280" rx="14" fill="#ffffff" stroke="rgba(99,102,241,0.18)" stroke-width="1.2" filter="drop-shadow(0 2px 8px rgba(99,102,241,0.08))"/>
 <text x="65" y="496.50" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="16" fill="#374151" transform="rotate(-90,65.00,496.50)">Taux de collision (%)</text>
 <line x1="165" y1="583.00" x2="900" y2="583.00" stroke="rgba(99,102,241,0.08)" stroke-width="1" stroke-dasharray="4,4"/>
@@ -190,8 +188,6 @@
 <circle cx="818.33" cy="451.86" r="4" fill="#a855f7" stroke="#ffffff" stroke-width="1.5"/>
 <circle cx="900.00" cy="425.73" r="8" fill="#a855f7" fill-opacity="0.12" stroke="none"/>
 <circle cx="900.00" cy="425.73" r="4" fill="#a855f7" stroke="#ffffff" stroke-width="1.5"/>
-<rect x="765" y="378" width="22" height="4" rx="2" fill="#a855f7" fill-opacity="0.85"/>
-<text x="793" y="385" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="16" fill="#374151">Taux de collision (%)</text>
   <rect x="50" y="690" width="880" height="280" rx="14" fill="#ffffff" stroke="rgba(99,102,241,0.18)" stroke-width="1.2" filter="drop-shadow(0 2px 8px rgba(99,102,241,0.08))"/>
 <text x="65" y="831.50" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="16" fill="#374151" transform="rotate(-90,65.00,831.50)">Délai moyen (ms)</text>
 <line x1="165" y1="918.00" x2="900" y2="918.00" stroke="rgba(99,102,241,0.08)" stroke-width="1" stroke-dasharray="4,4"/>
@@ -280,8 +276,6 @@
 <circle cx="818.33" cy="780.08" r="4" fill="#0ea5e9" stroke="#ffffff" stroke-width="1.5"/>
 <circle cx="900.00" cy="759.42" r="8" fill="#0ea5e9" fill-opacity="0.12" stroke="none"/>
 <circle cx="900.00" cy="759.42" r="4" fill="#0ea5e9" stroke="#ffffff" stroke-width="1.5"/>
-<rect x="765" y="713" width="22" height="4" rx="2" fill="#0ea5e9" fill-opacity="0.85"/>
-<text x="793" y="720" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="16" fill="#374151">Délai moyen (ms)</text>
   <text x="960" y="1176" text-anchor="end"
     font-family="system-ui,'Segoe UI',Arial,sans-serif"
     font-size="13" fill="#9ca3af">csma_ca_sim.py</text>

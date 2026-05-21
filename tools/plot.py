@@ -303,19 +303,6 @@ def plot_points(
                     f' fill="{stroke_color}" stroke="#ffffff" stroke-width="1.5"/>'
                 )
 
-            # Legend entry
-            legend_x = left + panel_width - 165
-            legend_y = panel_top + 32 + si * 22
-            el.append(
-                f'<rect x="{legend_x}" y="{legend_y - 9}" width="22" height="4"'
-                f' rx="2" fill="{stroke_color}" fill-opacity="0.85"/>'
-            )
-            el.append(
-                f'<text x="{legend_x + 28}" y="{legend_y - 2}"'
-                f' font-family="system-ui,\'Segoe UI\',Arial,sans-serif"'
-                f' font-size="16" fill="#374151">{escape(label)}</text>'
-            )
-
         return "\n".join(el)
 
     throughput_panel = panel_svg(
