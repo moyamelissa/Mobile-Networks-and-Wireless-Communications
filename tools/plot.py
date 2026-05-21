@@ -74,7 +74,7 @@ def plot_points(
     inner_top = 55
     inner_bottom = 52
 
-    # Blue/purple light-theme palette: (stroke, area-top-opacity, area-bot-opacity)
+    # Blue/purple light-theme palette: (couleur trait, opacité haut zone, opacité bas zone)
     PALETTE = [
         ("#6366f1", "0.14", "0.0"),   # indigo  — throughput
         ("#a855f7", "0.12", "0.0"),   # purple  — collision
@@ -130,7 +130,7 @@ def plot_points(
             )
         return " ".join(parts)
 
-    # Defs are accumulated here; panel_svg appends per-series area gradients.
+    # Les définitions SVG (<defs>) sont accumulées ici ; panel_svg y ajoute les dégradés de zone.
     defs_parts: list[str] = []
 
     def panel_svg(
@@ -159,14 +159,14 @@ def plot_points(
 
         el: list[str] = []
 
-        # Card
+        # Carte (fond blanc arrondi avec bordure et ombre légère)
         el.append(
             f'<rect x="{left}" y="{panel_top}" width="{panel_width}" height="{panel_height}"'
             f' rx="14" fill="#ffffff" stroke="rgba(99,102,241,0.18)" stroke-width="1.2"'
             f' filter="drop-shadow(0 2px 8px rgba(99,102,241,0.08))"/>'
         )
 
-        # Y-axis rotated label (sits in the left margin, centred vertically)
+        # Libellé rotatif de l'axe Y (dans la marge gauche, centré verticalement)
         y_center = panel_top + inner_top + (panel_height - inner_top - inner_bottom) / 2
         el.append(
             f'<text x="{left + 15}" y="{y_center:.2f}" text-anchor="middle"'
@@ -176,7 +176,7 @@ def plot_points(
             f'{escape(panel_title)} ({escape(y_label)})</text>'
         )
 
-        # Horizontal grid lines
+        # Lignes de grille horizontales
         for tick_value in format_ticks(y_min, y_max):
             y = scale_y(tick_value, y_min, y_max, panel_top)
             el.append(
@@ -184,7 +184,7 @@ def plot_points(
                 f' stroke="rgba(99,102,241,0.08)" stroke-width="1" stroke-dasharray="4,4"/>'
             )
 
-        # Axes
+        # Axes (ligne de base X et ligne de base Y)
         el.append(
             f'<line x1="{plot_left}" y1="{plot_bottom}" x2="{plot_left + plot_w}" y2="{plot_bottom}"'
             f' stroke="#d1d5db" stroke-width="1"/>'
@@ -194,7 +194,7 @@ def plot_points(
             f' stroke="#d1d5db" stroke-width="1"/>'
         )
 
-        # Y-axis tick labels (compact format)
+        # Graduations de l'axe Y (format compact : k, M…)
         for tick_value in format_ticks(y_min, y_max):
             y = scale_y(tick_value, y_min, y_max, panel_top)
             el.append(
@@ -203,7 +203,7 @@ def plot_points(
                 f' font-size="15" fill="#6b7280">{_format_y_label(tick_value)}</text>'
             )
 
-        # X-axis tick labels
+        # Graduations de l'axe X (valeurs du paramètre balayé)
         for idx, x_value in enumerate(x_values):
             x = scale_x(idx, len(x_values))
             el.append(
@@ -216,7 +216,7 @@ def plot_points(
                 f' font-size="15" fill="#6b7280">{x_value}</text>'
             )
 
-        # X-axis title label
+        # Libellé centré de l'axe X (sous les graduations)
         if x_label_text:
             el.append(
                 f'<text x="{plot_left + plot_w / 2:.2f}" y="{plot_bottom + 36:.2f}"'
@@ -225,7 +225,7 @@ def plot_points(
                 f' font-size="16" fill="#374151">{escape(x_label_text)}</text>'
             )
 
-        # Per-series rendering
+        # Tracé de chaque série (courbe lissée, zone, barres d'erreur, points)
         for si, (values, stds, ci, label) in enumerate(series):
             stroke_color = PALETTE[ci][0]
             area_op_top = PALETTE[ci][1]
@@ -236,7 +236,7 @@ def plot_points(
                 for idx, v in enumerate(values)
             ]
 
-            # Register area gradient in defs
+            # Enregistrement du dégradé de zone dans <defs>
             grad_id = f"areaGrad_p{panel_index}_s{si}"
             defs_parts.append(
                 f'<linearGradient id="{grad_id}" x1="0" y1="{plot_top:.2f}"'
@@ -250,7 +250,7 @@ def plot_points(
             )
             defs_parts.append("</linearGradient>")
 
-            # Area fill
+            # Zone de remplissage sous la courbe
             curve_d = smooth_curve(coords)
             area_d = (
                 f"{curve_d}"
@@ -259,19 +259,19 @@ def plot_points(
             )
             el.append(f'<path d="{area_d}" fill="url(#{grad_id})" stroke="none"/>')
 
-            # Glow halo behind the line
+            # Halo lumineux derrière la ligne (effet de profondeur)
             el.append(
                 f'<path d="{curve_d}" fill="none" stroke="{stroke_color}"'
                 f' stroke-width="8" stroke-opacity="0.18"'
                 f' stroke-linecap="round" stroke-linejoin="round"/>'
             )
-            # Main line
+            # Ligne principale de la courbe
             el.append(
                 f'<path d="{curve_d}" fill="none" stroke="{stroke_color}"'
                 f' stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>'
             )
 
-            # Error bars (±1 σ)
+            # Barres d'erreur (±1 σ)
             for idx, (value, std) in enumerate(zip(values, stds)):
                 if std > 0:
                     x = scale_x(idx, len(x_values))
@@ -290,7 +290,7 @@ def plot_points(
                         f' stroke="{stroke_color}" stroke-width="1.2" stroke-opacity="0.45"/>'
                     )
 
-            # Data dots: outer glow ring + filled core
+            # Points de données : anneau de halo + disque central plein
             for idx, value in enumerate(values):
                 x = scale_x(idx, len(x_values))
                 y = scale_y(value, y_min, y_max, panel_top)
