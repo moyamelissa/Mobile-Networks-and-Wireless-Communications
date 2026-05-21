@@ -112,7 +112,7 @@ python -m pytest test_csma_ca_sim.py --cov=csma_ca_sim --cov-report=term-missing
 
 ## Diagramme de fonctionnement
 
-![Diagramme CSMA/CA — BEB](assets/csma_ca_beb_flowchart.jpg)
+![Diagramme CSMA/CA](assets/csma_ca_flowchart.jpg)
 
 ---
 
