@@ -10,12 +10,16 @@
 Ce projet propose un simulateur à événements discrets du protocole CSMA/CA (Carrier Sense Multiple Access with Collision Avoidance), utilisé dans les réseaux Wi-Fi IEEE 802.11.  
 Le programme modélise plusieurs stations partageant un canal et permet d’analyser :
 
-- le débit (throughput)
+- le débit (bits/s)
 - le taux de collision
 - le délai moyen
 
 Un mode optionnel RTS/CTS est disponible pour comparaison.
-Conformément à l’énoncé, chaque station MAC ne traite qu’un seul paquet à la fois : une nouvelle arrivée n’est planifiée qu’après la réussite ou l’abandon du paquet courant.
+Conformément à l'énoncé, chaque station MAC ne traite qu'un seul paquet à la fois : une nouvelle arrivée n'est planifiée qu'après la réussite ou l'abandon du paquet courant.
+
+Un script d'automatisation (`run_experiments.py`) permet de reproduire l'ensemble des expériences et de générer automatiquement les fichiers CSV et les graphiques.
+
+Les résultats des simulations sont enregistrés dans le répertoire `data/` (CSV), tandis que les graphiques correspondants sont générés dans le répertoire `figures/`.
 
 ---
 
@@ -117,7 +121,6 @@ python -m pytest test_csma_ca_sim.py --cov=csma_ca_sim --cov-report=term-missing
 ```
 csma_ca_sim.py         # Simulateur principal (CSMA/CA, BEB, RTS/CTS, SVG)
 test_csma_ca_sim.py    # Suite de tests (103 tests, couverture 100 %)
-RAPPORT.md             # Rapport académique complet (sections 1–7)
 run_experiments.py     # Script de reproduction des 5 expériences du rapport
 data/                  # Données CSV brutes des expériences
 figures/               # Graphiques SVG générés (5 scénarios)
@@ -128,4 +131,4 @@ README.md              # Ce fichier
 
 ---
 
-2026 – Projet académique, Réseaux Mobiles et Communications Sans Fil
+Version finale – 2026 – Projet académique, Réseaux Mobiles et Communications Sans Fil
