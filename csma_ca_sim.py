@@ -1090,7 +1090,8 @@ def plot_points(points: list[ExperimentPoint], title: str, x_label: str, output_
     ]
 
     def panel_svg(panel_index: int, panel_top: float, panel_title: str, y_label: str,
-                  series: list[tuple[list[float], list[float], int, str]]) -> str:
+                  series: list[tuple[list[float], list[float], int, str]],
+                  x_label_text: str = "") -> str:
         """Génère le SVG complet d'un panneau de graphique pour une métrique donnée.
 
         Trace la carte de fond, les axes, les lignes de grille, les courbes lissées,
@@ -1191,6 +1192,14 @@ def plot_points(points: list[ExperimentPoint], title: str, x_label: str, output_
                 f' font-size="10" fill="#6b7280">{x_value}</text>'
             )
 
+        # X-axis label
+        if x_label_text:
+            el.append(
+                f'<text x="{plot_left + plot_w / 2:.2f}" y="{plot_bottom + 36:.2f}" text-anchor="middle"'
+                f' font-family="system-ui,\'Segoe UI\',Arial,sans-serif"'
+                f' font-size="11" fill="#374151">{escape(x_label_text)}</text>'
+            )
+
         # Per-series rendering
         for si, (values, stds, ci, label) in enumerate(series):
             stroke_color = PALETTE[ci][0]
@@ -1288,16 +1297,19 @@ def plot_points(points: list[ExperimentPoint], title: str, x_label: str, output_
         0, top_margin,
         "Débit", "bits/s",
         [(throughput_bits, throughput_bits_stds, 0, "Débit (bits/s)")],
+        x_label,
     )
     collision_panel = panel_svg(
         1, top_margin + panel_height + panel_gap,
         "Taux de collision", "%",
         [(collision_rates, collision_stds, 1, "Taux de collision (%)")],
+        x_label,
     )
     delay_panel = panel_svg(
         2, top_margin + (panel_height + panel_gap) * 2,
         "Délai moyen", "ms",
         [(mean_delays, delay_stds, 2, "Délai moyen (ms)")],
+        x_label,
     )
 
     defs_xml = "\n  ".join(defs_parts)
@@ -1313,9 +1325,6 @@ def plot_points(points: list[ExperimentPoint], title: str, x_label: str, output_
   {throughput_panel}
   {collision_panel}
   {delay_panel}
-  <text x="{width / 2}" y="{top_margin + (panel_height + panel_gap) * 2 + panel_height + 34}" text-anchor="middle"
-    font-family="system-ui,'Segoe UI',Arial,sans-serif"
-    font-size="13" fill="#374151">{escape(x_label)}</text>
   <text x="{width - 20}" y="{height - 14}" text-anchor="end"
     font-family="system-ui,'Segoe UI',Arial,sans-serif"
     font-size="10" fill="#9ca3af">csma_ca_sim.py</text>
