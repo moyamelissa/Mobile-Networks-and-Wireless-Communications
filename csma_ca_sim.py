@@ -1151,7 +1151,7 @@ def plot_points(points: list[ExperimentPoint], title: str, x_label: str, output_
             f'<text x="{left + 15}" y="{y_center:.2f}" text-anchor="middle"'
             f' font-family="system-ui,\'Segoe UI\',Arial,sans-serif"'
             f' font-size="11" fill="#374151"'
-            f' transform="rotate(-90,{left + 15:.2f},{y_center:.2f})">{escape(y_label)}</text>'
+            f' transform="rotate(-90,{left + 15:.2f},{y_center:.2f})">{escape(panel_title)} ({escape(y_label)})</text>'
         )
 
         # Horizontal grid lines
