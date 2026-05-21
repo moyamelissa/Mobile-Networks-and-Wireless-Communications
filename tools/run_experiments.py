@@ -5,12 +5,11 @@ Lance les 5 scénarios décrits dans le rapport académique et génère :
   - les graphiques SVG dans le dossier figures/
   - les fichiers CSV de données brutes dans le dossier data/
 
-Usage :
-    python run_experiments.py
+Usage (depuis la racine du projet) :
+    python tools/run_experiments.py
 
 Pré-requis :
     L'environnement virtuel doit être activé (ou les dépendances installées).
-    Le fichier csma_ca_sim.py doit se trouver dans le même répertoire.
 """
 
 # ---------------------------------------------------------------------------
@@ -24,9 +23,10 @@ from pathlib import Path  # Manipulation portable des chemins de fichiers
 # Constantes globales
 # ---------------------------------------------------------------------------
 PYTHON = sys.executable  # Interpréteur Python courant (respecte l'environnement virtuel actif)
-SIM    = "csma_ca_sim.py"  # Nom du simulateur principal à invoquer
-FIGURES = Path("figures")  # Dossier de sortie pour les graphiques SVG
-DATA    = Path("data")     # Dossier de sortie pour les données CSV brutes
+ROOT   = Path(__file__).resolve().parent.parent  # Racine du projet
+SIM    = ROOT / "csma_ca_sim.py"  # Simulateur principal
+FIGURES = ROOT / "figures"  # Dossier de sortie pour les graphiques SVG
+DATA    = ROOT / "data"     # Dossier de sortie pour les données CSV brutes
 
 # Création des dossiers de sortie si nécessaire (ne lève pas d'erreur s'ils existent déjà)
 FIGURES.mkdir(exist_ok=True)

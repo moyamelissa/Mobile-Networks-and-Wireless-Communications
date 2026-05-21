@@ -17,7 +17,9 @@ Le programme modélise plusieurs stations partageant un canal et permet d’anal
 Un mode optionnel RTS/CTS est disponible pour comparaison.
 Conformément à l'énoncé, chaque station MAC ne traite qu'un seul paquet à la fois : une nouvelle arrivée n'est planifiée qu'après la réussite ou l'abandon du paquet courant.
 
-Un script d'automatisation (`run_experiments.py`) permet de reproduire l'ensemble des expériences et de générer automatiquement les fichiers CSV et les graphiques.
+Un script d'automatisation (`tools/run_experiments.py`) permet de reproduire l'ensemble des expériences et de générer automatiquement les fichiers CSV et les graphiques.
+
+La génération des graphiques SVG est assurée par `tools/plot.py` (importé automatiquement par le simulateur).
 
 Les résultats des simulations sont enregistrés dans le répertoire `data/` (CSV), tandis que les graphiques correspondants sont générés dans le répertoire `figures/`.
 
@@ -59,6 +61,12 @@ Balayage du nombre de stations avec RTS/CTS :
 
 ```bash
 python csma_ca_sim.py --sweep-stations 2 20 2 --rtscts --runs 3 --simulation-time 5 --output figures/rtscts_vs_stations.svg
+```
+
+Reproduire toutes les expériences du rapport :
+
+```bash
+python tools/run_experiments.py
 ```
 
 Balayage de W_min :
@@ -119,9 +127,12 @@ python -m pytest test_csma_ca_sim.py --cov=csma_ca_sim --cov-report=term-missing
 ## Structure du projet
 
 ```
-csma_ca_sim.py         # Simulateur principal (CSMA/CA, BEB, RTS/CTS, SVG)
+csma_ca_sim.py         # Simulateur principal (CSMA/CA, BEB, RTS/CTS)
 test_csma_ca_sim.py    # Suite de tests (103 tests, couverture 100 %)
-run_experiments.py     # Script de reproduction des 5 expériences du rapport
+tools/
+    plot.py            # Génération des graphiques SVG (importé par csma_ca_sim.py)
+    run_experiments.py # Script de reproduction des 5 expériences du rapport
+    __init__.py        # Marqueur de package Python
 data/                  # Données CSV brutes des expériences
 figures/               # Graphiques SVG générés (5 scénarios)
 assets/                # Diagramme de fonctionnement (BEB flowchart)

@@ -13,8 +13,10 @@ Structure principale :
     StationState      — état MAC d'une station individuelle
     CSMACASimulator   — moteur à événements discrets
     run_single_experiment / average_results / sweep_* — utilitaires d'expérimentation
-    plot_points       — génération de graphiques SVG
     main              — point d'entrée en ligne de commande
+
+Génération des graphiques : voir tools/plot.py (plot_points).
+Reproduction des expériences : voir tools/run_experiments.py.
 """
 from __future__ import annotations
 
@@ -46,7 +48,7 @@ from pathlib import Path
 from statistics import mean, pstdev
 from typing import Optional
 
-from tool.plot import plot_points  # graphique SVG dans module dédié (tool/plot.py)
+from tools.plot import plot_points  # graphique SVG dans module dédié (tools/plot.py)
 
 
 # ---------------------------------------------------------------------------
