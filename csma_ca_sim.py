@@ -1355,6 +1355,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--rtscts", action="store_true", help="Active le mécanisme RTS/CTS avec réservation NAV")
     parser.add_argument("--rts-duration", type=float, default=200e-6, help="Durée d'une trame RTS (secondes)")
     parser.add_argument("--cts-duration", type=float, default=200e-6, help="Durée d'une trame CTS (secondes)")
+    parser.add_argument("--title", type=str, default=None, help="Titre personnalisé du graphique SVG (remplace le titre généré automatiquement)")
 
     # --- Balayages paramétriques (mutuellement exclusifs) ---
     sweep_group = parser.add_mutually_exclusive_group()
@@ -1402,7 +1403,8 @@ def main() -> None:
                 f"N={point.x_value:3d} | throughput={point.throughput_bits_per_s:12.2f} bits/s | "
                 f"collision={point.collision_rate * 100:6.2f} % | delay={point.mean_delay_s * 1000:8.4f} ms"
             )
-        plot_points(points, "CSMA/CA : impact du nombre de stations", "Nombre de stations", args.output)
+        title = args.title if args.title is not None else "CSMA/CA : impact du nombre de stations"
+        plot_points(points, title, "Nombre de stations", args.output)
         print(f"Plot saved to {args.output}")
         if args.csv is not None:
             save_csv(points, None, None, args.csv)
@@ -1418,7 +1420,8 @@ def main() -> None:
                 f"Wmin={point.x_value:3d} | throughput={point.throughput_bits_per_s:12.2f} bits/s | "
                 f"collision={point.collision_rate * 100:6.2f} % | delay={point.mean_delay_s * 1000:8.4f} ms"
             )
-        plot_points(points, "CSMA/CA : impact de la fenêtre de contention minimale", "Fenêtre de contention minimale (Wmin)", args.output)
+        title = args.title if args.title is not None else "CSMA/CA : impact de la fenêtre de contention minimale"
+        plot_points(points, title, "Fenêtre de contention minimale (Wmin)", args.output)
         print(f"Plot saved to {args.output}")
         if args.csv is not None:
             save_csv(points, None, None, args.csv)
@@ -1434,7 +1437,8 @@ def main() -> None:
                 f"Kmax={point.x_value:3d} | throughput={point.throughput_bits_per_s:12.2f} bits/s | "
                 f"collision={point.collision_rate * 100:6.2f} % | delay={point.mean_delay_s * 1000:8.4f} ms"
             )
-        plot_points(points, "CSMA/CA : impact du nombre maximal de tentatives (K_max)", "Nombre maximal de tentatives K_max", args.output)
+        title = args.title if args.title is not None else "CSMA/CA : impact du nombre maximal de tentatives (K_max)"
+        plot_points(points, title, "Nombre maximal de tentatives K_max", args.output)
         print(f"Plot saved to {args.output}")
         if args.csv is not None:
             save_csv(points, None, None, args.csv)
