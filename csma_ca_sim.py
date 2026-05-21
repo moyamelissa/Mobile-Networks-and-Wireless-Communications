@@ -1020,25 +1020,47 @@ def plot_points(points: list[ExperimentPoint], title: str, x_label: str, output_
     delay_stds = [point.mean_delay_std * 1000 for point in points]
 
     def scale_x(index: int, count: int) -> float:
+        """Convertit l'indice d'un point en coordonnée X SVG.
+
+        Distribue uniformément les points sur la largeur utile du panneau.
+        Retourne le centre horizontal si count == 1 (un seul point de données).
+        """
         plot_w = panel_width - inner_left - inner_right
         if count == 1:
             return left + inner_left + plot_w / 2
         return left + inner_left + (plot_w * index / (count - 1))
 
     def scale_y(value: float, minimum: float, maximum: float, panel_top: float) -> float:
+        """Convertit une valeur de données en coordonnée Y SVG (axe inversé : haut = maximum).
+
+        Retourne le centre vertical du panneau si minimum == maximum (axe dégénéré),
+        afin d'éviter une division par zéro.
+        """
         plot_h = panel_height - inner_top - inner_bottom
         if math.isclose(minimum, maximum):  # pragma: no cover
             return panel_top + inner_top + plot_h / 2  # pragma: no cover
         return panel_top + inner_top + (maximum - value) * plot_h / (maximum - minimum)
 
     def format_ticks(minimum: float, maximum: float, count: int = 5) -> list[float]:
+        """Calcule les valeurs des graduations régulièrement espacées sur l'axe Y.
+
+        Retourne `count` valeurs de minimum à maximum inclus.
+        Si minimum == maximum (axe dégénéré), retourne [minimum] pour éviter une erreur.
+        """
         if math.isclose(minimum, maximum):  # pragma: no cover
             return [minimum]  # pragma: no cover
         step = (maximum - minimum) / (count - 1)
         return [minimum + step * index for index in range(count)]
 
     def smooth_curve(coords: list[tuple[float, float]]) -> str:
-        """Catmull-Rom spline converted to cubic Bézier SVG path."""
+        """Génère un chemin SVG lissé à partir d'une liste de points (x, y).
+
+        Utilise l'algorithme de spline de Catmull-Rom converti en courbes de Bézier
+        cubiques : les tangentes en chaque point sont calculées à partir des voisins
+        (P_{i-1} et P_{i+1}), ce qui produit une courbe C1 continue et visuellement
+        douce sans nécessiter de bibliothèque externe.
+        Retourne la chaîne de commande SVG au format « M... C... ».
+        """
         if len(coords) < 2:
             return f"M{coords[0][0]:.2f},{coords[0][1]:.2f}"
         n = len(coords)
@@ -1069,7 +1091,24 @@ def plot_points(points: list[ExperimentPoint], title: str, x_label: str, output_
 
     def panel_svg(panel_index: int, panel_top: float, panel_title: str, y_label: str,
                   series: list[tuple[list[float], list[float], int, str]]) -> str:
-        """series items: (values, stds, palette_index, label)."""
+        """Génère le SVG complet d'un panneau de graphique pour une métrique donnée.
+
+        Trace la carte de fond, les axes, les lignes de grille, les courbes lissées,
+        les barres d'erreur (±1σ) et les points de données pour chaque série fournie.
+        Les dégradés de zone sont enregistrés dans `defs_parts` (accessible en closure).
+
+        Args:
+            panel_index: Indice du panneau (0=débit, 1=collision, 2=délai) — utilisé
+                         pour générer des identifiants SVG uniques (gradients, etc.).
+            panel_top:   Coordonnée Y du bord supérieur du panneau (pixels SVG).
+            panel_title: Titre affiché en haut à gauche du panneau.
+            y_label:     Libellé de l'unité affiché sous le titre (ex. "bits/s", "%", "ms").
+            series:      Liste de séries à tracer ; chaque élément est un tuple
+                         (valeurs, écarts-types, indice_palette, légende).
+
+        Returns:
+            Chaîne SVG (sans balise racine) représentant le panneau complet.
+        """
         y_min = min(min(values) for values, _, _, _ in series)
         y_max = max(max(values) for values, _, _, _ in series)
         if math.isclose(y_min, y_max):
@@ -1294,29 +1333,34 @@ def build_arg_parser() -> argparse.ArgumentParser:
     de balayage (--sweep-stations, --sweep-wmin) et de répétition (--runs).
     """
     parser = argparse.ArgumentParser(description="Simulateur à événements discrets du protocole CSMA/CA avec backoff exponentiel binaire")
-    parser.add_argument("--stations", type=int, default=8, help="Number of stations")
-    parser.add_argument("--arrival-rate", type=float, default=20.0, help="Arrival rate per station (packets/s) — renewal process, not pure Poisson")
-    parser.add_argument("--simulation-time", type=float, default=20.0, help="Simulation horizon in seconds")
-    parser.add_argument("--packet-bits", type=int, default=12000, help="Packet size in bits")
-    parser.add_argument("--packet-duration", type=float, default=0.001, help="Packet transmission duration in seconds")
-    parser.add_argument("--slot-time", type=float, default=20e-6, help="Slot time in seconds")
-    parser.add_argument("--difs", type=float, default=50e-6, help="DIFS in seconds")
-    parser.add_argument("--sifs", type=float, default=10e-6, help="SIFS in seconds")
-    parser.add_argument("--wmin", type=int, default=15, help="Minimum contention window")
-    parser.add_argument("--wmax", type=int, default=1023, help="Maximum contention window")
-    parser.add_argument("--kmax", type=int, default=15, help="Maximum retransmissions before drop")
-    parser.add_argument("--seed", type=int, default=None, help="Random seed")
-    parser.add_argument("--runs", type=int, default=1, help="Number of repetitions to average")
-    parser.add_argument("--output", type=Path, default=Path("csma_ca_results.svg"), help="Plot output path")
-    parser.add_argument("--csv", type=Path, default=None, help="Optional path to save raw results as CSV")
-    parser.add_argument("--rtscts", action="store_true", help="Enable RTS/CTS handshake and NAV")
-    parser.add_argument("--rts-duration", type=float, default=200e-6, help="RTS duration in seconds")
-    parser.add_argument("--cts-duration", type=float, default=200e-6, help="CTS duration in seconds")
+    # --- Paramètres de la simulation ---
+    parser.add_argument("--stations", type=int, default=8, help="Nombre de stations en compétition pour le canal")
+    parser.add_argument("--arrival-rate", type=float, default=20.0, help="Taux d'arrivée par station (paquets/s) — processus de renouvellement, non un Poisson pur")
+    parser.add_argument("--simulation-time", type=float, default=20.0, help="Horizon de simulation (secondes)")
+    parser.add_argument("--packet-bits", type=int, default=12000, help="Taille d'un paquet (bits) — 12 000 bits = 1 500 octets")
+    parser.add_argument("--packet-duration", type=float, default=0.001, help="Durée de transmission d'un paquet (secondes)")
+    parser.add_argument("--slot-time", type=float, default=20e-6, help="Durée d'un slot de backoff (secondes)")
+    parser.add_argument("--difs", type=float, default=50e-6, help="DIFS : délai inter-trames distribué (secondes)")
+    parser.add_argument("--sifs", type=float, default=10e-6, help="SIFS : délai inter-trames court (secondes)")
+    # --- Paramètres du protocole CSMA/CA ---
+    parser.add_argument("--wmin", type=int, default=15, help="Fenêtre de contention minimale W_min")
+    parser.add_argument("--wmax", type=int, default=1023, help="Fenêtre de contention maximale W_max")
+    parser.add_argument("--kmax", type=int, default=15, help="Nombre maximal de tentatives avant abandon du paquet")
+    # --- Contrôle de la simulation ---
+    parser.add_argument("--seed", type=int, default=None, help="Graine aléatoire pour la reproductibilité (None = non déterministe)")
+    parser.add_argument("--runs", type=int, default=1, help="Nombre de répétitions (résultats moyennés pour réduire la variance)")
+    parser.add_argument("--output", type=Path, default=Path("csma_ca_results.svg"), help="Chemin du fichier SVG généré")
+    parser.add_argument("--csv", type=Path, default=None, help="Chemin optionnel pour sauvegarder les résultats bruts en CSV")
+    # --- Mode RTS/CTS ---
+    parser.add_argument("--rtscts", action="store_true", help="Active le mécanisme RTS/CTS avec réservation NAV")
+    parser.add_argument("--rts-duration", type=float, default=200e-6, help="Durée d'une trame RTS (secondes)")
+    parser.add_argument("--cts-duration", type=float, default=200e-6, help="Durée d'une trame CTS (secondes)")
 
+    # --- Balayages paramétriques (mutuellement exclusifs) ---
     sweep_group = parser.add_mutually_exclusive_group()
-    sweep_group.add_argument("--sweep-stations", nargs=3, type=int, metavar=("START", "STOP", "STEP"), help="Sweep the number of stations")
-    sweep_group.add_argument("--sweep-wmin", nargs=3, type=int, metavar=("START", "STOP", "STEP"), help="Sweep the minimum contention window")
-    sweep_group.add_argument("--sweep-kmax", nargs=3, type=int, metavar=("START", "STOP", "STEP"), help="Sweep the maximum retransmission count K_max")
+    sweep_group.add_argument("--sweep-stations", nargs=3, type=int, metavar=("START", "STOP", "STEP"), help="Balayage du nombre de stations (début fin pas)")
+    sweep_group.add_argument("--sweep-wmin", nargs=3, type=int, metavar=("START", "STOP", "STEP"), help="Balayage de la fenêtre de contention minimale W_min (début fin pas)")
+    sweep_group.add_argument("--sweep-kmax", nargs=3, type=int, metavar=("START", "STOP", "STEP"), help="Balayage du nombre maximal de tentatives K_max (début fin pas)")
 
     return parser
 

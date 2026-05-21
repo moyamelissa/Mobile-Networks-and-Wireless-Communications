@@ -42,31 +42,31 @@ python csma_ca_sim.py --stations 8 --arrival-rate 50 --rtscts
 Balayage du nombre de stations (charge standard) :
 
 ```bash
-python csma_ca_sim.py --sweep-stations 2 20 2 --runs 3 --simulation-time 5 --output Graphiques/stations.svg
+python csma_ca_sim.py --sweep-stations 2 20 2 --runs 3 --simulation-time 5 --output figures/moderate_load_vs_stations.svg
 ```
 
 Balayage du nombre de stations (forte charge) :
 
 ```bash
-python csma_ca_sim.py --sweep-stations 2 20 2 --arrival-rate 60 --runs 3 --simulation-time 5 --output Graphiques/high_load.svg
+python csma_ca_sim.py --sweep-stations 2 20 2 --arrival-rate 200 --runs 3 --simulation-time 5 --output figures/high_load_vs_stations.svg
 ```
 
 Balayage du nombre de stations avec RTS/CTS :
 
 ```bash
-python csma_ca_sim.py --sweep-stations 2 20 2 --rtscts --runs 3 --simulation-time 5 --output Graphiques/rtscts.svg
+python csma_ca_sim.py --sweep-stations 2 20 2 --rtscts --runs 3 --simulation-time 5 --output figures/rtscts_vs_stations.svg
 ```
 
 Balayage de W_min :
 
 ```bash
-python csma_ca_sim.py --sweep-wmin 3 63 5 --stations 15 --arrival-rate 80 --runs 3 --simulation-time 5 --output Graphiques/wmin.svg
+python csma_ca_sim.py --sweep-wmin 3 63 5 --stations 15 --arrival-rate 80 --runs 3 --simulation-time 5 --output figures/impact_wmin.svg
 ```
 
 Balayage de K_max :
 
 ```bash
-python csma_ca_sim.py --sweep-kmax 1 20 1 --stations 12 --arrival-rate 80 --runs 3 --simulation-time 5 --output Graphiques/kmax.svg
+python csma_ca_sim.py --sweep-kmax 1 20 1 --stations 15 --arrival-rate 150 --runs 3 --simulation-time 5 --output figures/impact_kmax.svg
 ```
 
 ---
@@ -112,8 +112,8 @@ python -m pytest test_csma_ca_sim.py --cov=csma_ca_sim --cov-report=term-missing
 csma_ca_sim.py         # Simulateur principal (CSMA/CA, BEB, RTS/CTS, SVG)
 test_csma_ca_sim.py    # Suite de tests (103 tests, couverture 100 %)
 RAPPORT.md             # Rapport académique complet (sections 1–7 + annexes)
-figure2_csma_ca.md     # Diagrammes Mermaid du protocole (Figure 2a / 2b)
-Graphiques/            # Graphiques SVG générés (stations, high_load, rtscts, wmin, kmax)
+run_experiments.py     # Script de reproduction des expériences du rapport
+figures/               # Graphiques SVG générés (stations, high_load, rtscts, wmin, kmax)
 requirements-dev.txt   # Dépendances de développement (pytest, pytest-cov)
 README.md              # Documentation rapide
 ```
