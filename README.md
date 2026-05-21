@@ -106,16 +106,24 @@ python -m pytest test_csma_ca_sim.py --cov=csma_ca_sim --cov-report=term-missing
 
 ---
 
+## Diagramme de fonctionnement
+
+![Diagramme CSMA/CA — BEB](assets/csma_ca_beb_flowchart.jpg)
+
+---
+
 ## Structure du projet
 
 ```
 csma_ca_sim.py         # Simulateur principal (CSMA/CA, BEB, RTS/CTS, SVG)
 test_csma_ca_sim.py    # Suite de tests (103 tests, couverture 100 %)
-RAPPORT.md             # Rapport académique complet (sections 1–7 + annexes)
-run_experiments.py     # Script de reproduction des expériences du rapport
-figures/               # Graphiques SVG générés (stations, high_load, rtscts, wmin, kmax)
+RAPPORT.md             # Rapport académique complet (sections 1–7)
+run_experiments.py     # Script de reproduction des 5 expériences du rapport
+data/                  # Données CSV brutes des expériences
+figures/               # Graphiques SVG générés (5 scénarios)
+assets/                # Diagramme de fonctionnement (BEB flowchart)
 requirements-dev.txt   # Dépendances de développement (pytest, pytest-cov)
-README.md              # Documentation rapide
+README.md              # Ce fichier
 ```
 
 ---
