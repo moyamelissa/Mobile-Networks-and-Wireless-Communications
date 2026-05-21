@@ -1078,16 +1078,7 @@ def plot_points(points: list[ExperimentPoint], title: str, x_label: str, output_
         return " ".join(parts)
 
     # Defs are accumulated here; panel_svg appends per-series area gradients.
-    defs_parts: list[str] = [
-        '<linearGradient id="svgBg" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox">',
-        '  <stop offset="0%" stop-color="#ffffff"/>',
-        '  <stop offset="100%" stop-color="#f5f3ff"/>',
-        '</linearGradient>',
-        '<radialGradient id="topGlow" cx="50%" cy="0%" r="60%">',
-        '  <stop offset="0%" stop-color="#6366f1" stop-opacity="0.05"/>',
-        '  <stop offset="100%" stop-color="#6366f1" stop-opacity="0"/>',
-        '</radialGradient>',
-    ]
+    defs_parts: list[str] = []
 
     def panel_svg(panel_index: int, panel_top: float, panel_title: str, y_label: str,
                   series: list[tuple[list[float], list[float], int, str]],
@@ -1138,7 +1129,7 @@ def plot_points(points: list[ExperimentPoint], title: str, x_label: str, output_
         el.append(
             f'<text x="{left + 15}" y="{y_center:.2f}" text-anchor="middle"'
             f' font-family="system-ui,\'Segoe UI\',Arial,sans-serif"'
-            f' font-size="11" fill="#374151"'
+            f' font-size="13" fill="#374151"'
             f' transform="rotate(-90,{left + 15:.2f},{y_center:.2f})">{escape(panel_title)} ({escape(y_label)})</text>'
         )
 
@@ -1166,7 +1157,7 @@ def plot_points(points: list[ExperimentPoint], title: str, x_label: str, output_
             el.append(
                 f'<text x="{plot_left - 8}" y="{y + 4:.2f}" text-anchor="end"'
                 f' font-family="system-ui,\'Segoe UI\',Arial,sans-serif"'
-                f' font-size="10" fill="#6b7280">{tick_value:.2f}</text>'
+                f' font-size="12" fill="#6b7280">{tick_value:.2f}</text>'
             )
 
         # X-axis labels
@@ -1179,7 +1170,7 @@ def plot_points(points: list[ExperimentPoint], title: str, x_label: str, output_
             el.append(
                 f'<text x="{x:.2f}" y="{plot_bottom + 18}" text-anchor="middle"'
                 f' font-family="system-ui,\'Segoe UI\',Arial,sans-serif"'
-                f' font-size="10" fill="#6b7280">{x_value}</text>'
+                f' font-size="12" fill="#6b7280">{x_value}</text>'
             )
 
         # X-axis label
@@ -1187,7 +1178,7 @@ def plot_points(points: list[ExperimentPoint], title: str, x_label: str, output_
             el.append(
                 f'<text x="{plot_left + plot_w / 2:.2f}" y="{plot_bottom + 36:.2f}" text-anchor="middle"'
                 f' font-family="system-ui,\'Segoe UI\',Arial,sans-serif"'
-                f' font-size="11" fill="#374151">{escape(x_label_text)}</text>'
+                f' font-size="13" fill="#374151">{escape(x_label_text)}</text>'
             )
 
         # Per-series rendering
@@ -1278,7 +1269,7 @@ def plot_points(points: list[ExperimentPoint], title: str, x_label: str, output_
             el.append(
                 f'<text x="{legend_x + 28}" y="{legend_y - 2}"'
                 f' font-family="system-ui,\'Segoe UI\',Arial,sans-serif"'
-                f' font-size="11" fill="#374151">{escape(label)}</text>'
+                f' font-size="13" fill="#374151">{escape(label)}</text>'
             )
 
         return "\n".join(el)
@@ -1307,17 +1298,16 @@ def plot_points(points: list[ExperimentPoint], title: str, x_label: str, output_
   <defs>
   {defs_xml}
   </defs>
-  <rect width="100%" height="100%" fill="url(#svgBg)"/>
-  <rect width="100%" height="100%" fill="url(#topGlow)"/>
+  <rect width="100%" height="100%" fill="#ffffff"/>
   <text x="{width / 2}" y="56" text-anchor="middle"
     font-family="system-ui,'Segoe UI',Arial,sans-serif"
-    font-size="22" font-weight="700" fill="#1e1b4b" letter-spacing="0.4">{escape(title)}</text>
+    font-size="24" font-weight="700" fill="#1e1b4b" letter-spacing="0.4">{escape(title)}</text>
   {throughput_panel}
   {collision_panel}
   {delay_panel}
   <text x="{width - 20}" y="{height - 14}" text-anchor="end"
     font-family="system-ui,'Segoe UI',Arial,sans-serif"
-    font-size="10" fill="#9ca3af">csma_ca_sim.py</text>
+    font-size="11" fill="#9ca3af">csma_ca_sim.py</text>
 </svg>
 """
 

@@ -1,13 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="980" height="1190" viewBox="0 0 980 1190">
   <defs>
-  <linearGradient id="svgBg" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox">
-    <stop offset="0%" stop-color="#ffffff"/>
-    <stop offset="100%" stop-color="#f5f3ff"/>
-  </linearGradient>
-  <radialGradient id="topGlow" cx="50%" cy="0%" r="60%">
-    <stop offset="0%" stop-color="#6366f1" stop-opacity="0.05"/>
-    <stop offset="100%" stop-color="#6366f1" stop-opacity="0"/>
-  </radialGradient>
   <linearGradient id="areaGrad_p0_s0" x1="0" y1="135.00" x2="0" y2="308.00" gradientUnits="userSpaceOnUse">
     <stop offset="0%" stop-color="#6366f1" stop-opacity="0.14"/>
     <stop offset="100%" stop-color="#6366f1" stop-opacity="0.0"/>
@@ -21,13 +13,12 @@
     <stop offset="100%" stop-color="#0ea5e9" stop-opacity="0.0"/>
   </linearGradient>
   </defs>
-  <rect width="100%" height="100%" fill="url(#svgBg)"/>
-  <rect width="100%" height="100%" fill="url(#topGlow)"/>
+  <rect width="100%" height="100%" fill="#ffffff"/>
   <text x="490.0" y="56" text-anchor="middle"
     font-family="system-ui,'Segoe UI',Arial,sans-serif"
-    font-size="22" font-weight="700" fill="#1e1b4b" letter-spacing="0.4">CSMA/CA : impact du nombre maximal de tentatives (K_max)</text>
+    font-size="24" font-weight="700" fill="#1e1b4b" letter-spacing="0.4">CSMA/CA : impact du nombre maximal de tentatives (K_max)</text>
   <rect x="50" y="80" width="880" height="280" rx="14" fill="#ffffff" stroke="rgba(99,102,241,0.18)" stroke-width="1.2" filter="drop-shadow(0 2px 8px rgba(99,102,241,0.08))"/>
-<text x="65" y="221.50" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="11" fill="#374151" transform="rotate(-90,65.00,221.50)">Débit (bits/s)</text>
+<text x="65" y="221.50" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="13" fill="#374151" transform="rotate(-90,65.00,221.50)">Débit (bits/s)</text>
 <line x1="145" y1="308.00" x2="900" y2="308.00" stroke="rgba(99,102,241,0.08)" stroke-width="1" stroke-dasharray="4,4"/>
 <line x1="145" y1="264.75" x2="900" y2="264.75" stroke="rgba(99,102,241,0.08)" stroke-width="1" stroke-dasharray="4,4"/>
 <line x1="145" y1="221.50" x2="900" y2="221.50" stroke="rgba(99,102,241,0.08)" stroke-width="1" stroke-dasharray="4,4"/>
@@ -35,52 +26,52 @@
 <line x1="145" y1="135.00" x2="900" y2="135.00" stroke="rgba(99,102,241,0.08)" stroke-width="1" stroke-dasharray="4,4"/>
 <line x1="145" y1="308" x2="900" y2="308" stroke="#d1d5db" stroke-width="1"/>
 <line x1="145" y1="135" x2="145" y2="308" stroke="#d1d5db" stroke-width="1"/>
-<text x="137" y="312.00" text-anchor="end" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">7565120.00</text>
-<text x="137" y="268.75" text-anchor="end" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">7871360.00</text>
-<text x="137" y="225.50" text-anchor="end" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">8177600.00</text>
-<text x="137" y="182.25" text-anchor="end" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">8483840.00</text>
-<text x="137" y="139.00" text-anchor="end" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">8790080.00</text>
+<text x="137" y="312.00" text-anchor="end" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">7565120.00</text>
+<text x="137" y="268.75" text-anchor="end" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">7871360.00</text>
+<text x="137" y="225.50" text-anchor="end" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">8177600.00</text>
+<text x="137" y="182.25" text-anchor="end" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">8483840.00</text>
+<text x="137" y="139.00" text-anchor="end" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">8790080.00</text>
 <line x1="145.00" y1="308" x2="145.00" y2="312" stroke="#d1d5db" stroke-width="1"/>
-<text x="145.00" y="326" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="145.00" y="326" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">1</text>
 <line x1="184.74" y1="308" x2="184.74" y2="312" stroke="#d1d5db" stroke-width="1"/>
-<text x="184.74" y="326" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">2</text>
+<text x="184.74" y="326" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">2</text>
 <line x1="224.47" y1="308" x2="224.47" y2="312" stroke="#d1d5db" stroke-width="1"/>
-<text x="224.47" y="326" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">3</text>
+<text x="224.47" y="326" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">3</text>
 <line x1="264.21" y1="308" x2="264.21" y2="312" stroke="#d1d5db" stroke-width="1"/>
-<text x="264.21" y="326" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">4</text>
+<text x="264.21" y="326" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">4</text>
 <line x1="303.95" y1="308" x2="303.95" y2="312" stroke="#d1d5db" stroke-width="1"/>
-<text x="303.95" y="326" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">5</text>
+<text x="303.95" y="326" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">5</text>
 <line x1="343.68" y1="308" x2="343.68" y2="312" stroke="#d1d5db" stroke-width="1"/>
-<text x="343.68" y="326" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">6</text>
+<text x="343.68" y="326" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">6</text>
 <line x1="383.42" y1="308" x2="383.42" y2="312" stroke="#d1d5db" stroke-width="1"/>
-<text x="383.42" y="326" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">7</text>
+<text x="383.42" y="326" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">7</text>
 <line x1="423.16" y1="308" x2="423.16" y2="312" stroke="#d1d5db" stroke-width="1"/>
-<text x="423.16" y="326" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">8</text>
+<text x="423.16" y="326" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">8</text>
 <line x1="462.89" y1="308" x2="462.89" y2="312" stroke="#d1d5db" stroke-width="1"/>
-<text x="462.89" y="326" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">9</text>
+<text x="462.89" y="326" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">9</text>
 <line x1="502.63" y1="308" x2="502.63" y2="312" stroke="#d1d5db" stroke-width="1"/>
-<text x="502.63" y="326" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">10</text>
+<text x="502.63" y="326" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">10</text>
 <line x1="542.37" y1="308" x2="542.37" y2="312" stroke="#d1d5db" stroke-width="1"/>
-<text x="542.37" y="326" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">11</text>
+<text x="542.37" y="326" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">11</text>
 <line x1="582.11" y1="308" x2="582.11" y2="312" stroke="#d1d5db" stroke-width="1"/>
-<text x="582.11" y="326" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">12</text>
+<text x="582.11" y="326" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">12</text>
 <line x1="621.84" y1="308" x2="621.84" y2="312" stroke="#d1d5db" stroke-width="1"/>
-<text x="621.84" y="326" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">13</text>
+<text x="621.84" y="326" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">13</text>
 <line x1="661.58" y1="308" x2="661.58" y2="312" stroke="#d1d5db" stroke-width="1"/>
-<text x="661.58" y="326" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">14</text>
+<text x="661.58" y="326" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">14</text>
 <line x1="701.32" y1="308" x2="701.32" y2="312" stroke="#d1d5db" stroke-width="1"/>
-<text x="701.32" y="326" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">15</text>
+<text x="701.32" y="326" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">15</text>
 <line x1="741.05" y1="308" x2="741.05" y2="312" stroke="#d1d5db" stroke-width="1"/>
-<text x="741.05" y="326" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">16</text>
+<text x="741.05" y="326" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">16</text>
 <line x1="780.79" y1="308" x2="780.79" y2="312" stroke="#d1d5db" stroke-width="1"/>
-<text x="780.79" y="326" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">17</text>
+<text x="780.79" y="326" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">17</text>
 <line x1="820.53" y1="308" x2="820.53" y2="312" stroke="#d1d5db" stroke-width="1"/>
-<text x="820.53" y="326" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">18</text>
+<text x="820.53" y="326" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">18</text>
 <line x1="860.26" y1="308" x2="860.26" y2="312" stroke="#d1d5db" stroke-width="1"/>
-<text x="860.26" y="326" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">19</text>
+<text x="860.26" y="326" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">19</text>
 <line x1="900.00" y1="308" x2="900.00" y2="312" stroke="#d1d5db" stroke-width="1"/>
-<text x="900.00" y="326" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">20</text>
-<text x="522.50" y="344.00" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="11" fill="#374151">Nombre maximal de tentatives K_max</text>
+<text x="900.00" y="326" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">20</text>
+<text x="522.50" y="344.00" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="13" fill="#374151">Nombre maximal de tentatives K_max</text>
 <path d="M145.00,293.58 C151.62,285.69 171.49,260.80 184.74,246.24 C197.98,231.69 211.23,216.98 224.47,206.25 C237.72,195.51 250.96,187.68 264.21,181.84 C277.46,176.01 290.70,174.97 303.95,171.22 C317.19,167.48 330.44,162.58 343.68,159.36 C356.93,156.14 370.18,152.05 383.42,151.90 C396.67,151.75 409.91,157.42 423.16,158.46 C436.40,159.49 449.65,159.43 462.89,158.12 C476.14,156.80 489.39,150.73 502.63,150.55 C515.88,150.36 529.12,156.06 542.37,156.99 C555.61,157.91 568.86,157.34 582.11,156.08 C595.35,154.82 608.60,149.64 621.84,149.42 C635.09,149.19 648.33,152.64 661.58,154.73 C674.82,156.82 688.07,161.41 701.32,161.96 C714.56,162.50 727.81,159.23 741.05,158.00 C754.30,156.78 767.54,155.29 780.79,154.61 C794.04,153.94 807.28,154.75 820.53,153.94 C833.77,153.13 847.02,149.87 860.26,149.76 C873.51,149.64 893.38,152.67 900.00,153.26 L900.00,308.00 L145.00,308.00 Z" fill="url(#areaGrad_p0_s0)" stroke="none"/>
 <path d="M145.00,293.58 C151.62,285.69 171.49,260.80 184.74,246.24 C197.98,231.69 211.23,216.98 224.47,206.25 C237.72,195.51 250.96,187.68 264.21,181.84 C277.46,176.01 290.70,174.97 303.95,171.22 C317.19,167.48 330.44,162.58 343.68,159.36 C356.93,156.14 370.18,152.05 383.42,151.90 C396.67,151.75 409.91,157.42 423.16,158.46 C436.40,159.49 449.65,159.43 462.89,158.12 C476.14,156.80 489.39,150.73 502.63,150.55 C515.88,150.36 529.12,156.06 542.37,156.99 C555.61,157.91 568.86,157.34 582.11,156.08 C595.35,154.82 608.60,149.64 621.84,149.42 C635.09,149.19 648.33,152.64 661.58,154.73 C674.82,156.82 688.07,161.41 701.32,161.96 C714.56,162.50 727.81,159.23 741.05,158.00 C754.30,156.78 767.54,155.29 780.79,154.61 C794.04,153.94 807.28,154.75 820.53,153.94 C833.77,153.13 847.02,149.87 860.26,149.76 C873.51,149.64 893.38,152.67 900.00,153.26" fill="none" stroke="#6366f1" stroke-width="8" stroke-opacity="0.18" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M145.00,293.58 C151.62,285.69 171.49,260.80 184.74,246.24 C197.98,231.69 211.23,216.98 224.47,206.25 C237.72,195.51 250.96,187.68 264.21,181.84 C277.46,176.01 290.70,174.97 303.95,171.22 C317.19,167.48 330.44,162.58 343.68,159.36 C356.93,156.14 370.18,152.05 383.42,151.90 C396.67,151.75 409.91,157.42 423.16,158.46 C436.40,159.49 449.65,159.43 462.89,158.12 C476.14,156.80 489.39,150.73 502.63,150.55 C515.88,150.36 529.12,156.06 542.37,156.99 C555.61,157.91 568.86,157.34 582.11,156.08 C595.35,154.82 608.60,149.64 621.84,149.42 C635.09,149.19 648.33,152.64 661.58,154.73 C674.82,156.82 688.07,161.41 701.32,161.96 C714.56,162.50 727.81,159.23 741.05,158.00 C754.30,156.78 767.54,155.29 780.79,154.61 C794.04,153.94 807.28,154.75 820.53,153.94 C833.77,153.13 847.02,149.87 860.26,149.76 C873.51,149.64 893.38,152.67 900.00,153.26" fill="none" stroke="#6366f1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -185,9 +176,9 @@
 <circle cx="900.00" cy="153.26" r="8" fill="#6366f1" fill-opacity="0.12" stroke="none"/>
 <circle cx="900.00" cy="153.26" r="4" fill="#6366f1" stroke="#ffffff" stroke-width="1.5"/>
 <rect x="765" y="103" width="22" height="4" rx="2" fill="#6366f1" fill-opacity="0.85"/>
-<text x="793" y="110" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="11" fill="#374151">Débit (bits/s)</text>
+<text x="793" y="110" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="13" fill="#374151">Débit (bits/s)</text>
   <rect x="50" y="415" width="880" height="280" rx="14" fill="#ffffff" stroke="rgba(99,102,241,0.18)" stroke-width="1.2" filter="drop-shadow(0 2px 8px rgba(99,102,241,0.08))"/>
-<text x="65" y="556.50" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="11" fill="#374151" transform="rotate(-90,65.00,556.50)">Taux de collision (%)</text>
+<text x="65" y="556.50" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="13" fill="#374151" transform="rotate(-90,65.00,556.50)">Taux de collision (%)</text>
 <line x1="145" y1="643.00" x2="900" y2="643.00" stroke="rgba(99,102,241,0.08)" stroke-width="1" stroke-dasharray="4,4"/>
 <line x1="145" y1="599.75" x2="900" y2="599.75" stroke="rgba(99,102,241,0.08)" stroke-width="1" stroke-dasharray="4,4"/>
 <line x1="145" y1="556.50" x2="900" y2="556.50" stroke="rgba(99,102,241,0.08)" stroke-width="1" stroke-dasharray="4,4"/>
@@ -195,52 +186,52 @@
 <line x1="145" y1="470.00" x2="900" y2="470.00" stroke="rgba(99,102,241,0.08)" stroke-width="1" stroke-dasharray="4,4"/>
 <line x1="145" y1="643" x2="900" y2="643" stroke="#d1d5db" stroke-width="1"/>
 <line x1="145" y1="470" x2="145" y2="643" stroke="#d1d5db" stroke-width="1"/>
-<text x="137" y="647.00" text-anchor="end" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">35.75</text>
-<text x="137" y="603.75" text-anchor="end" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">39.85</text>
-<text x="137" y="560.50" text-anchor="end" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">43.94</text>
-<text x="137" y="517.25" text-anchor="end" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">48.04</text>
-<text x="137" y="474.00" text-anchor="end" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">52.13</text>
+<text x="137" y="647.00" text-anchor="end" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">35.75</text>
+<text x="137" y="603.75" text-anchor="end" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">39.85</text>
+<text x="137" y="560.50" text-anchor="end" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">43.94</text>
+<text x="137" y="517.25" text-anchor="end" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">48.04</text>
+<text x="137" y="474.00" text-anchor="end" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">52.13</text>
 <line x1="145.00" y1="643" x2="145.00" y2="647" stroke="#d1d5db" stroke-width="1"/>
-<text x="145.00" y="661" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="145.00" y="661" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">1</text>
 <line x1="184.74" y1="643" x2="184.74" y2="647" stroke="#d1d5db" stroke-width="1"/>
-<text x="184.74" y="661" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">2</text>
+<text x="184.74" y="661" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">2</text>
 <line x1="224.47" y1="643" x2="224.47" y2="647" stroke="#d1d5db" stroke-width="1"/>
-<text x="224.47" y="661" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">3</text>
+<text x="224.47" y="661" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">3</text>
 <line x1="264.21" y1="643" x2="264.21" y2="647" stroke="#d1d5db" stroke-width="1"/>
-<text x="264.21" y="661" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">4</text>
+<text x="264.21" y="661" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">4</text>
 <line x1="303.95" y1="643" x2="303.95" y2="647" stroke="#d1d5db" stroke-width="1"/>
-<text x="303.95" y="661" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">5</text>
+<text x="303.95" y="661" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">5</text>
 <line x1="343.68" y1="643" x2="343.68" y2="647" stroke="#d1d5db" stroke-width="1"/>
-<text x="343.68" y="661" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">6</text>
+<text x="343.68" y="661" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">6</text>
 <line x1="383.42" y1="643" x2="383.42" y2="647" stroke="#d1d5db" stroke-width="1"/>
-<text x="383.42" y="661" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">7</text>
+<text x="383.42" y="661" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">7</text>
 <line x1="423.16" y1="643" x2="423.16" y2="647" stroke="#d1d5db" stroke-width="1"/>
-<text x="423.16" y="661" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">8</text>
+<text x="423.16" y="661" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">8</text>
 <line x1="462.89" y1="643" x2="462.89" y2="647" stroke="#d1d5db" stroke-width="1"/>
-<text x="462.89" y="661" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">9</text>
+<text x="462.89" y="661" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">9</text>
 <line x1="502.63" y1="643" x2="502.63" y2="647" stroke="#d1d5db" stroke-width="1"/>
-<text x="502.63" y="661" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">10</text>
+<text x="502.63" y="661" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">10</text>
 <line x1="542.37" y1="643" x2="542.37" y2="647" stroke="#d1d5db" stroke-width="1"/>
-<text x="542.37" y="661" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">11</text>
+<text x="542.37" y="661" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">11</text>
 <line x1="582.11" y1="643" x2="582.11" y2="647" stroke="#d1d5db" stroke-width="1"/>
-<text x="582.11" y="661" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">12</text>
+<text x="582.11" y="661" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">12</text>
 <line x1="621.84" y1="643" x2="621.84" y2="647" stroke="#d1d5db" stroke-width="1"/>
-<text x="621.84" y="661" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">13</text>
+<text x="621.84" y="661" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">13</text>
 <line x1="661.58" y1="643" x2="661.58" y2="647" stroke="#d1d5db" stroke-width="1"/>
-<text x="661.58" y="661" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">14</text>
+<text x="661.58" y="661" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">14</text>
 <line x1="701.32" y1="643" x2="701.32" y2="647" stroke="#d1d5db" stroke-width="1"/>
-<text x="701.32" y="661" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">15</text>
+<text x="701.32" y="661" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">15</text>
 <line x1="741.05" y1="643" x2="741.05" y2="647" stroke="#d1d5db" stroke-width="1"/>
-<text x="741.05" y="661" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">16</text>
+<text x="741.05" y="661" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">16</text>
 <line x1="780.79" y1="643" x2="780.79" y2="647" stroke="#d1d5db" stroke-width="1"/>
-<text x="780.79" y="661" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">17</text>
+<text x="780.79" y="661" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">17</text>
 <line x1="820.53" y1="643" x2="820.53" y2="647" stroke="#d1d5db" stroke-width="1"/>
-<text x="820.53" y="661" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">18</text>
+<text x="820.53" y="661" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">18</text>
 <line x1="860.26" y1="643" x2="860.26" y2="647" stroke="#d1d5db" stroke-width="1"/>
-<text x="860.26" y="661" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">19</text>
+<text x="860.26" y="661" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">19</text>
 <line x1="900.00" y1="643" x2="900.00" y2="647" stroke="#d1d5db" stroke-width="1"/>
-<text x="900.00" y="661" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">20</text>
-<text x="522.50" y="679.00" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="11" fill="#374151">Nombre maximal de tentatives K_max</text>
+<text x="900.00" y="661" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">20</text>
+<text x="522.50" y="679.00" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="13" fill="#374151">Nombre maximal de tentatives K_max</text>
 <path d="M145.00,484.42 C151.62,491.40 171.49,512.87 184.74,526.34 C197.98,539.81 211.23,554.20 224.47,565.23 C237.72,576.26 250.96,585.83 264.21,592.51 C277.46,599.19 290.70,600.90 303.95,605.31 C317.19,609.72 330.44,615.90 343.68,618.99 C356.93,622.07 370.18,623.88 383.42,623.82 C396.67,623.75 409.91,619.36 423.16,618.57 C436.40,617.78 449.65,617.42 462.89,619.09 C476.14,620.76 489.39,628.33 502.63,628.58 C515.88,628.83 529.12,621.85 542.37,620.60 C555.61,619.34 568.86,620.21 582.11,621.06 C595.35,621.90 608.60,625.28 621.84,625.67 C635.09,626.06 648.33,624.77 661.58,623.40 C674.82,622.04 688.07,617.85 701.32,617.47 C714.56,617.10 727.81,620.62 741.05,621.17 C754.30,621.73 767.54,620.52 780.79,620.82 C794.04,621.12 807.28,621.85 820.53,622.97 C833.77,624.10 847.02,627.14 860.26,627.58 C873.51,628.02 893.38,625.94 900.00,625.61 L900.00,643.00 L145.00,643.00 Z" fill="url(#areaGrad_p1_s0)" stroke="none"/>
 <path d="M145.00,484.42 C151.62,491.40 171.49,512.87 184.74,526.34 C197.98,539.81 211.23,554.20 224.47,565.23 C237.72,576.26 250.96,585.83 264.21,592.51 C277.46,599.19 290.70,600.90 303.95,605.31 C317.19,609.72 330.44,615.90 343.68,618.99 C356.93,622.07 370.18,623.88 383.42,623.82 C396.67,623.75 409.91,619.36 423.16,618.57 C436.40,617.78 449.65,617.42 462.89,619.09 C476.14,620.76 489.39,628.33 502.63,628.58 C515.88,628.83 529.12,621.85 542.37,620.60 C555.61,619.34 568.86,620.21 582.11,621.06 C595.35,621.90 608.60,625.28 621.84,625.67 C635.09,626.06 648.33,624.77 661.58,623.40 C674.82,622.04 688.07,617.85 701.32,617.47 C714.56,617.10 727.81,620.62 741.05,621.17 C754.30,621.73 767.54,620.52 780.79,620.82 C794.04,621.12 807.28,621.85 820.53,622.97 C833.77,624.10 847.02,627.14 860.26,627.58 C873.51,628.02 893.38,625.94 900.00,625.61" fill="none" stroke="#a855f7" stroke-width="8" stroke-opacity="0.18" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M145.00,484.42 C151.62,491.40 171.49,512.87 184.74,526.34 C197.98,539.81 211.23,554.20 224.47,565.23 C237.72,576.26 250.96,585.83 264.21,592.51 C277.46,599.19 290.70,600.90 303.95,605.31 C317.19,609.72 330.44,615.90 343.68,618.99 C356.93,622.07 370.18,623.88 383.42,623.82 C396.67,623.75 409.91,619.36 423.16,618.57 C436.40,617.78 449.65,617.42 462.89,619.09 C476.14,620.76 489.39,628.33 502.63,628.58 C515.88,628.83 529.12,621.85 542.37,620.60 C555.61,619.34 568.86,620.21 582.11,621.06 C595.35,621.90 608.60,625.28 621.84,625.67 C635.09,626.06 648.33,624.77 661.58,623.40 C674.82,622.04 688.07,617.85 701.32,617.47 C714.56,617.10 727.81,620.62 741.05,621.17 C754.30,621.73 767.54,620.52 780.79,620.82 C794.04,621.12 807.28,621.85 820.53,622.97 C833.77,624.10 847.02,627.14 860.26,627.58 C873.51,628.02 893.38,625.94 900.00,625.61" fill="none" stroke="#a855f7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -345,9 +336,9 @@
 <circle cx="900.00" cy="625.61" r="8" fill="#a855f7" fill-opacity="0.12" stroke="none"/>
 <circle cx="900.00" cy="625.61" r="4" fill="#a855f7" stroke="#ffffff" stroke-width="1.5"/>
 <rect x="765" y="438" width="22" height="4" rx="2" fill="#a855f7" fill-opacity="0.85"/>
-<text x="793" y="445" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="11" fill="#374151">Taux de collision (%)</text>
+<text x="793" y="445" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="13" fill="#374151">Taux de collision (%)</text>
   <rect x="50" y="750" width="880" height="280" rx="14" fill="#ffffff" stroke="rgba(99,102,241,0.18)" stroke-width="1.2" filter="drop-shadow(0 2px 8px rgba(99,102,241,0.08))"/>
-<text x="65" y="891.50" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="11" fill="#374151" transform="rotate(-90,65.00,891.50)">Délai moyen (ms)</text>
+<text x="65" y="891.50" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="13" fill="#374151" transform="rotate(-90,65.00,891.50)">Délai moyen (ms)</text>
 <line x1="145" y1="978.00" x2="900" y2="978.00" stroke="rgba(99,102,241,0.08)" stroke-width="1" stroke-dasharray="4,4"/>
 <line x1="145" y1="934.75" x2="900" y2="934.75" stroke="rgba(99,102,241,0.08)" stroke-width="1" stroke-dasharray="4,4"/>
 <line x1="145" y1="891.50" x2="900" y2="891.50" stroke="rgba(99,102,241,0.08)" stroke-width="1" stroke-dasharray="4,4"/>
@@ -355,52 +346,52 @@
 <line x1="145" y1="805.00" x2="900" y2="805.00" stroke="rgba(99,102,241,0.08)" stroke-width="1" stroke-dasharray="4,4"/>
 <line x1="145" y1="978" x2="900" y2="978" stroke="#d1d5db" stroke-width="1"/>
 <line x1="145" y1="805" x2="145" y2="978" stroke="#d1d5db" stroke-width="1"/>
-<text x="137" y="982.00" text-anchor="end" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">8.41</text>
-<text x="137" y="938.75" text-anchor="end" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">10.02</text>
-<text x="137" y="895.50" text-anchor="end" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">11.63</text>
-<text x="137" y="852.25" text-anchor="end" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">13.23</text>
-<text x="137" y="809.00" text-anchor="end" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">14.84</text>
+<text x="137" y="982.00" text-anchor="end" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">8.41</text>
+<text x="137" y="938.75" text-anchor="end" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">10.02</text>
+<text x="137" y="895.50" text-anchor="end" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">11.63</text>
+<text x="137" y="852.25" text-anchor="end" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">13.23</text>
+<text x="137" y="809.00" text-anchor="end" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">14.84</text>
 <line x1="145.00" y1="978" x2="145.00" y2="982" stroke="#d1d5db" stroke-width="1"/>
-<text x="145.00" y="996" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">1</text>
+<text x="145.00" y="996" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">1</text>
 <line x1="184.74" y1="978" x2="184.74" y2="982" stroke="#d1d5db" stroke-width="1"/>
-<text x="184.74" y="996" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">2</text>
+<text x="184.74" y="996" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">2</text>
 <line x1="224.47" y1="978" x2="224.47" y2="982" stroke="#d1d5db" stroke-width="1"/>
-<text x="224.47" y="996" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">3</text>
+<text x="224.47" y="996" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">3</text>
 <line x1="264.21" y1="978" x2="264.21" y2="982" stroke="#d1d5db" stroke-width="1"/>
-<text x="264.21" y="996" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">4</text>
+<text x="264.21" y="996" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">4</text>
 <line x1="303.95" y1="978" x2="303.95" y2="982" stroke="#d1d5db" stroke-width="1"/>
-<text x="303.95" y="996" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">5</text>
+<text x="303.95" y="996" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">5</text>
 <line x1="343.68" y1="978" x2="343.68" y2="982" stroke="#d1d5db" stroke-width="1"/>
-<text x="343.68" y="996" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">6</text>
+<text x="343.68" y="996" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">6</text>
 <line x1="383.42" y1="978" x2="383.42" y2="982" stroke="#d1d5db" stroke-width="1"/>
-<text x="383.42" y="996" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">7</text>
+<text x="383.42" y="996" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">7</text>
 <line x1="423.16" y1="978" x2="423.16" y2="982" stroke="#d1d5db" stroke-width="1"/>
-<text x="423.16" y="996" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">8</text>
+<text x="423.16" y="996" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">8</text>
 <line x1="462.89" y1="978" x2="462.89" y2="982" stroke="#d1d5db" stroke-width="1"/>
-<text x="462.89" y="996" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">9</text>
+<text x="462.89" y="996" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">9</text>
 <line x1="502.63" y1="978" x2="502.63" y2="982" stroke="#d1d5db" stroke-width="1"/>
-<text x="502.63" y="996" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">10</text>
+<text x="502.63" y="996" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">10</text>
 <line x1="542.37" y1="978" x2="542.37" y2="982" stroke="#d1d5db" stroke-width="1"/>
-<text x="542.37" y="996" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">11</text>
+<text x="542.37" y="996" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">11</text>
 <line x1="582.11" y1="978" x2="582.11" y2="982" stroke="#d1d5db" stroke-width="1"/>
-<text x="582.11" y="996" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">12</text>
+<text x="582.11" y="996" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">12</text>
 <line x1="621.84" y1="978" x2="621.84" y2="982" stroke="#d1d5db" stroke-width="1"/>
-<text x="621.84" y="996" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">13</text>
+<text x="621.84" y="996" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">13</text>
 <line x1="661.58" y1="978" x2="661.58" y2="982" stroke="#d1d5db" stroke-width="1"/>
-<text x="661.58" y="996" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">14</text>
+<text x="661.58" y="996" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">14</text>
 <line x1="701.32" y1="978" x2="701.32" y2="982" stroke="#d1d5db" stroke-width="1"/>
-<text x="701.32" y="996" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">15</text>
+<text x="701.32" y="996" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">15</text>
 <line x1="741.05" y1="978" x2="741.05" y2="982" stroke="#d1d5db" stroke-width="1"/>
-<text x="741.05" y="996" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">16</text>
+<text x="741.05" y="996" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">16</text>
 <line x1="780.79" y1="978" x2="780.79" y2="982" stroke="#d1d5db" stroke-width="1"/>
-<text x="780.79" y="996" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">17</text>
+<text x="780.79" y="996" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">17</text>
 <line x1="820.53" y1="978" x2="820.53" y2="982" stroke="#d1d5db" stroke-width="1"/>
-<text x="820.53" y="996" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">18</text>
+<text x="820.53" y="996" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">18</text>
 <line x1="860.26" y1="978" x2="860.26" y2="982" stroke="#d1d5db" stroke-width="1"/>
-<text x="860.26" y="996" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">19</text>
+<text x="860.26" y="996" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">19</text>
 <line x1="900.00" y1="978" x2="900.00" y2="982" stroke="#d1d5db" stroke-width="1"/>
-<text x="900.00" y="996" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="10" fill="#6b7280">20</text>
-<text x="522.50" y="1014.00" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="11" fill="#374151">Nombre maximal de tentatives K_max</text>
+<text x="900.00" y="996" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="12" fill="#6b7280">20</text>
+<text x="522.50" y="1014.00" text-anchor="middle" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="13" fill="#374151">Nombre maximal de tentatives K_max</text>
 <path d="M145.00,963.58 C151.62,952.74 171.49,914.47 184.74,898.51 C197.98,882.56 211.23,876.68 224.47,867.88 C237.72,859.08 250.96,850.13 264.21,845.71 C277.46,841.28 290.70,842.63 303.95,841.35 C317.19,840.08 330.44,839.12 343.68,838.04 C356.93,836.96 370.18,837.13 383.42,834.87 C396.67,832.62 409.91,826.42 423.16,824.50 C436.40,822.57 449.65,823.19 462.89,823.33 C476.14,823.47 489.39,825.64 502.63,825.35 C515.88,825.06 529.12,822.08 542.37,821.59 C555.61,821.09 568.86,821.89 582.11,822.39 C595.35,822.89 608.60,824.19 621.84,824.59 C635.09,824.99 648.33,825.65 661.58,824.79 C674.82,823.93 688.07,819.92 701.32,819.42 C714.56,818.92 727.81,821.15 741.05,821.80 C754.30,822.46 767.54,823.00 780.79,823.34 C794.04,823.68 807.28,823.32 820.53,823.86 C833.77,824.40 847.02,826.70 860.26,826.59 C873.51,826.48 893.38,823.76 900.00,823.20 L900.00,978.00 L145.00,978.00 Z" fill="url(#areaGrad_p2_s0)" stroke="none"/>
 <path d="M145.00,963.58 C151.62,952.74 171.49,914.47 184.74,898.51 C197.98,882.56 211.23,876.68 224.47,867.88 C237.72,859.08 250.96,850.13 264.21,845.71 C277.46,841.28 290.70,842.63 303.95,841.35 C317.19,840.08 330.44,839.12 343.68,838.04 C356.93,836.96 370.18,837.13 383.42,834.87 C396.67,832.62 409.91,826.42 423.16,824.50 C436.40,822.57 449.65,823.19 462.89,823.33 C476.14,823.47 489.39,825.64 502.63,825.35 C515.88,825.06 529.12,822.08 542.37,821.59 C555.61,821.09 568.86,821.89 582.11,822.39 C595.35,822.89 608.60,824.19 621.84,824.59 C635.09,824.99 648.33,825.65 661.58,824.79 C674.82,823.93 688.07,819.92 701.32,819.42 C714.56,818.92 727.81,821.15 741.05,821.80 C754.30,822.46 767.54,823.00 780.79,823.34 C794.04,823.68 807.28,823.32 820.53,823.86 C833.77,824.40 847.02,826.70 860.26,826.59 C873.51,826.48 893.38,823.76 900.00,823.20" fill="none" stroke="#0ea5e9" stroke-width="8" stroke-opacity="0.18" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M145.00,963.58 C151.62,952.74 171.49,914.47 184.74,898.51 C197.98,882.56 211.23,876.68 224.47,867.88 C237.72,859.08 250.96,850.13 264.21,845.71 C277.46,841.28 290.70,842.63 303.95,841.35 C317.19,840.08 330.44,839.12 343.68,838.04 C356.93,836.96 370.18,837.13 383.42,834.87 C396.67,832.62 409.91,826.42 423.16,824.50 C436.40,822.57 449.65,823.19 462.89,823.33 C476.14,823.47 489.39,825.64 502.63,825.35 C515.88,825.06 529.12,822.08 542.37,821.59 C555.61,821.09 568.86,821.89 582.11,822.39 C595.35,822.89 608.60,824.19 621.84,824.59 C635.09,824.99 648.33,825.65 661.58,824.79 C674.82,823.93 688.07,819.92 701.32,819.42 C714.56,818.92 727.81,821.15 741.05,821.80 C754.30,822.46 767.54,823.00 780.79,823.34 C794.04,823.68 807.28,823.32 820.53,823.86 C833.77,824.40 847.02,826.70 860.26,826.59 C873.51,826.48 893.38,823.76 900.00,823.20" fill="none" stroke="#0ea5e9" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -505,8 +496,8 @@
 <circle cx="900.00" cy="823.20" r="8" fill="#0ea5e9" fill-opacity="0.12" stroke="none"/>
 <circle cx="900.00" cy="823.20" r="4" fill="#0ea5e9" stroke="#ffffff" stroke-width="1.5"/>
 <rect x="765" y="773" width="22" height="4" rx="2" fill="#0ea5e9" fill-opacity="0.85"/>
-<text x="793" y="780" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="11" fill="#374151">Délai moyen (ms)</text>
+<text x="793" y="780" font-family="system-ui,'Segoe UI',Arial,sans-serif" font-size="13" fill="#374151">Délai moyen (ms)</text>
   <text x="960" y="1176" text-anchor="end"
     font-family="system-ui,'Segoe UI',Arial,sans-serif"
-    font-size="10" fill="#9ca3af">csma_ca_sim.py</text>
+    font-size="11" fill="#9ca3af">csma_ca_sim.py</text>
 </svg>
