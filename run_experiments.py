@@ -52,7 +52,7 @@ EXPERIMENTS = [
             "--seed", "42",           # Graine fixe pour la reproductibilité
             "--output", str(FIGURES / "moderate_load_vs_stations.svg"),
             "--csv",   str(DATA    / "moderate_load_vs_stations.csv"),
-            "--title", "CSMA/CA : charge standard (\u03bb=20 pkt/s) — impact du nombre de stations",
+
         ],
     },
     {
@@ -67,7 +67,7 @@ EXPERIMENTS = [
             "--seed", "42",
             "--output", str(FIGURES / "high_load_vs_stations.svg"),
             "--csv",   str(DATA    / "high_load_vs_stations.csv"),
-            "--title", "CSMA/CA : forte charge (\u03bb=200 pkt/s) — impact du nombre de stations",
+
         ],
     },
     {
@@ -115,7 +115,7 @@ EXPERIMENTS = [
             "--seed", "42",
             "--output", str(FIGURES / "rtscts_vs_stations.svg"),
             "--csv",   str(DATA    / "rtscts_vs_stations.csv"),
-            "--title", "CSMA/CA : m\u00e9canisme RTS/CTS — impact du nombre de stations",
+
         ],
     },
 ]
