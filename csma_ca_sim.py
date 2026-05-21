@@ -997,7 +997,7 @@ def plot_points(points: list[ExperimentPoint], title: str, x_label: str, output_
     panel_width = 880
     panel_height = 280
     left = 50
-    top_margin = 90
+    top_margin = 80
     panel_gap = 55
     inner_left = 95
     inner_right = 30
@@ -1307,15 +1307,15 @@ def plot_points(points: list[ExperimentPoint], title: str, x_label: str, output_
   </defs>
   <rect width="100%" height="100%" fill="url(#svgBg)"/>
   <rect width="100%" height="100%" fill="url(#topGlow)"/>
-  <text x="{width / 2}" y="46" text-anchor="middle"
+  <text x="{width / 2}" y="56" text-anchor="middle"
     font-family="system-ui,'Segoe UI',Arial,sans-serif"
     font-size="22" font-weight="700" fill="#1e1b4b" letter-spacing="0.4">{escape(title)}</text>
-  <text x="{width / 2}" y="68" text-anchor="middle"
-    font-family="system-ui,'Segoe UI',Arial,sans-serif"
-    font-size="12" fill="#6b7280">{escape(x_label)}</text>
   {throughput_panel}
   {collision_panel}
   {delay_panel}
+  <text x="{width / 2}" y="{top_margin + (panel_height + panel_gap) * 2 + panel_height + 34}" text-anchor="middle"
+    font-family="system-ui,'Segoe UI',Arial,sans-serif"
+    font-size="13" fill="#374151">{escape(x_label)}</text>
   <text x="{width - 20}" y="{height - 14}" text-anchor="end"
     font-family="system-ui,'Segoe UI',Arial,sans-serif"
     font-size="10" fill="#9ca3af">csma_ca_sim.py</text>
