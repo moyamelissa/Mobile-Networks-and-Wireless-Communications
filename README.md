@@ -39,58 +39,22 @@ pip install -r requirements-dev.txt
 
 ## Utilisation rapide
 
-Simulation simple :
+Simulation simple :
 
 ```bash
 python csma_ca_sim.py --stations 4 --arrival-rate 20 --simulation-time 5
 ```
 
-Génération d’un graphique paramétrique :
-
-```bash
-python csma_ca_sim.py --sweep-stations 2 20 2 --runs 3 --output resultats.svg
-```
-
-Activer le mode RTS/CTS :
+Avec le mode RTS/CTS :
 
 ```bash
 python csma_ca_sim.py --stations 8 --arrival-rate 50 --rtscts
-```
-
-Balayage du nombre de stations (charge standard) :
-
-```bash
-python csma_ca_sim.py --sweep-stations 2 20 2 --runs 3 --simulation-time 5 --output figures/moderate_load_vs_stations.svg
-```
-
-Balayage du nombre de stations (forte charge) :
-
-```bash
-python csma_ca_sim.py --sweep-stations 2 20 2 --arrival-rate 200 --runs 3 --simulation-time 5 --output figures/high_load_vs_stations.svg
-```
-
-Balayage du nombre de stations avec RTS/CTS :
-
-```bash
-python csma_ca_sim.py --sweep-stations 2 20 2 --rtscts --runs 3 --simulation-time 5 --output figures/rtscts_vs_stations.svg
 ```
 
 Reproduire toutes les expériences du rapport :
 
 ```bash
 python tools/run_experiments.py
-```
-
-Balayage de W_min :
-
-```bash
-python csma_ca_sim.py --sweep-wmin 3 63 5 --stations 15 --arrival-rate 80 --runs 3 --simulation-time 5 --output figures/impact_wmin.svg
-```
-
-Balayage de K_max :
-
-```bash
-python csma_ca_sim.py --sweep-kmax 1 20 1 --stations 15 --arrival-rate 150 --runs 3 --simulation-time 5 --output figures/impact_kmax.svg
 ```
 
 ---
