@@ -25,6 +25,18 @@ Les résultats des simulations sont enregistrés dans le répertoire `data/` (CS
 
 ---
 
+## Installation
+
+Aucune dépendance externe requise pour exécuter les simulations (bibliothèque standard Python 3.8+ uniquement).
+
+Pour les tests unitaires uniquement :
+
+```bash
+pip install -r requirements-dev.txt
+```
+
+---
+
 ## Utilisation rapide
 
 Simulation simple :
